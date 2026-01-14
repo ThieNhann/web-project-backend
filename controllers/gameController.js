@@ -6,7 +6,7 @@ const getGames = async (req, res) => {
     // sort theo id
     const games = await db('games')
       .where('is_active', true)
-      .select('id', 'name', 'code', 'description', 'image_url')
+      .select('id', 'name', 'code', 'description')
       .orderBy('id', 'asc');
 
     res.json({
