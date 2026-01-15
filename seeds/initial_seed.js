@@ -1,3 +1,5 @@
+const bcrypt = require('bcryptjs');
+
 exports.seed = async function(knex) {
   // Delete old data
   await knex('user_achievements').del();
@@ -9,12 +11,16 @@ exports.seed = async function(knex) {
   await knex('users').del();
 
   // 5 users
+
+  const salt = await bcrypt.genSalt(10);
+  const commonPassword = await bcrypt.hash('123456', salt); // tatsa cả user mẫu dùng pass: 123456
+
   const users = await knex('users').insert([
-    { username: 'admin_pro', password: 'hashed_password', full_name: 'Admin', role: 'admin' },
-    { username: 'nguyenvana', password: 'hashed_password', full_name: 'Nguyen Van A', role: 'user' },
-    { username: 'lethib', password: 'hashed_password', full_name: 'Le Thi B', role: 'user' },
-    { username: 'tranvanc', password: 'hashed_password', full_name: 'Tran Van C', role: 'user' },
-    { username: 'skibiditoilet', password: 'hashed_password', full_name: 'Skibidi Toilet', role: 'user' }
+    { username: 'admin_pro', password: commonPassword, full_name: 'Admin', role: 'admin' },
+    { username: 'nguyenvana', password: commonPassword, full_name: 'Nguyen Van A', role: 'user' },
+    { username: 'lethib', password: commonPassword, full_name: 'Le Thi B', role: 'user' },
+    { username: 'tranvanc', password: commonPassword, full_name: 'Tran Van C', role: 'user' },
+    { username: 'skibiditoilet', password: commonPassword, full_name: 'Skibidi Toilet', role: 'user' }
   ]).returning('id');
 
   // 7 games
