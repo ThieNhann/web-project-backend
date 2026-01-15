@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-
 /**
     Xác thực người dùng
     Chặn request ko hợp lệ và bơm thông tin cho controller
@@ -30,4 +29,4 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-module.exports = verifyToken;
+module.exports = { verifyToken };

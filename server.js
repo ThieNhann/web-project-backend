@@ -6,7 +6,7 @@ const cors = require('cors');
 const gameRoutes = require('./routes/gameRoutes');    // Game routes
 const authRoutes = require('./routes/authRoutes')     // Auth routes
 
-const verifyToken = require('./middleware/authMiddleware');
+const { verifyToken } = require('./middleware/authMiddleware');
 
 
 const app = express();

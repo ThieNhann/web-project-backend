@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs');
+const { v4: uuidv4 } = require('uuid');
 
 exports.seed = async function(knex) {
   // Delete old data
@@ -16,11 +17,11 @@ exports.seed = async function(knex) {
   const commonPassword = await bcrypt.hash('123456', salt); // tatsa cả user mẫu dùng pass: 123456
 
   const users = await knex('users').insert([
-    { username: 'admin_pro', password: commonPassword, full_name: 'Admin', role: 'admin' },
-    { username: 'nguyenvana', password: commonPassword, full_name: 'Nguyen Van A', role: 'user' },
-    { username: 'lethib', password: commonPassword, full_name: 'Le Thi B', role: 'user' },
-    { username: 'tranvanc', password: commonPassword, full_name: 'Tran Van C', role: 'user' },
-    { username: 'skibiditoilet', password: commonPassword, full_name: 'Skibidi Toilet', role: 'user' }
+    { id: uuidv4(), username: 'admin_pro', password: commonPassword, full_name: 'Admin', role: 'admin', email: 'admin@example.com' },
+    { id: uuidv4(), username: 'nguyenvana', password: commonPassword, full_name: 'Nguyen Van A', role: 'user', email: 'nguyenvana@example.com' },
+    { id: uuidv4(), username: 'lethib', password: commonPassword, full_name: 'Le Thi B', role: 'user', email: 'lethib@example.com' },
+    { id: uuidv4(), username: 'tranvanc', password: commonPassword, full_name: 'Tran Van C', role: 'user', email: 'tranvanc@example.com' },
+    { id: uuidv4(), username: 'skibiditoilet', password: commonPassword, full_name: 'Skibidi Toilet', role: 'user', email: 'skibiditoilet@example.com' }
   ]).returning('id');
 
   // 7 games

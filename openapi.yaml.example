@@ -1,0 +1,601 @@
+openapi: 3.0.3
+
+info:
+  title: Web Project Game
+  description: |
+    RESTful API for Web Application Development project.
+    Supports authentication, board games, gameplay sessions, save/load,
+    rankings, achievements and admin management.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+    description: Local development
+
+tags:
+  - name: Auth
+  - name: Users
+  - name: Friends
+  - name: Messages
+  - name: Games
+  - name: Sessions
+  - name: SaveLoad
+  - name: Rankings
+  - name: Achievements
+  - name: Admin
+  - name: Statistics
+
+security:
+  - bearerAuth: []
+
+paths:
+
+  # ================= AUTH =================
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        201:
+          description: User registered
+        400:
+          description: Invalid input
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        200:
+          description: Login success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        401:
+          description: Unauthorized
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout current user
+      responses:
+        204:
+          description: Logged out
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current user info
+      responses:
+        200:
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  # ================= USERS =================
+
+  /users/me:
+    get:
+      tags: [Users]
+      summary: Get my profile
+      responses:
+        200:
+          description: Profile data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    put:
+      tags: [Users]
+      summary: Update my profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        200:
+          description: Updated
+
+  /users/{userId}:
+    get:
+      tags: [Users]
+      summary: Get public user profile
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: User info
+
+  # ================= FRIENDS =================
+
+  /friends:
+    get:
+      tags: [Friends]
+      summary: Get friend list
+      responses:
+        200:
+          description: Friend list
+
+  /friends/request/{userId}:
+    post:
+      tags: [Friends]
+      summary: Send friend request
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Request sent
+
+  /friends/accept/{userId}:
+    post:
+      tags: [Friends]
+      summary: Accept friend request
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Accepted
+
+  /friends/{userId}:
+    delete:
+      tags: [Friends]
+      summary: Remove friend
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: Removed
+
+  # ================= MESSAGES =================
+
+  /messages/conversations:
+    get:
+      tags: [Messages]
+      summary: List conversations
+      responses:
+        200:
+          description: Conversations
+
+  /messages/{userId}:
+    get:
+      tags: [Messages]
+      summary: Get messages with a user
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Messages
+    post:
+      tags: [Messages]
+      summary: Send message
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+      responses:
+        201:
+          description: Sent
+
+  # ================= GAMES =================
+
+  /games:
+    get:
+      tags: [Games]
+      summary: List available games
+      responses:
+        200:
+          description: Games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Game'
+
+  /games/{gameId}:
+    get:
+      tags: [Games]
+      summary: Get game detail
+      parameters:
+        - in: path
+          name: gameId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Game detail
+
+  # ================= GAME SESSIONS =================
+
+  /games/{gameId}/sessions:
+    post:
+      tags: [Sessions]
+      summary: Create new game session
+      parameters:
+        - in: path
+          name: gameId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionCreate'
+      responses:
+        201:
+          description: Session created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameSession'
+
+  /sessions/{sessionId}:
+    get:
+      tags: [Sessions]
+      summary: Get session state
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Session state
+
+  /sessions/{sessionId}/move:
+    post:
+      tags: [Sessions]
+      summary: Make a move
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameMove'
+      responses:
+        200:
+          description: Move accepted
+
+  /sessions/{sessionId}/end:
+    post:
+      tags: [Sessions]
+      summary: End session
+      responses:
+        200:
+          description: Ended
+
+  # ================= SAVE / LOAD =================
+
+  /sessions/{sessionId}/save:
+    post:
+      tags: [SaveLoad]
+      summary: Save game state
+      responses:
+        200:
+          description: Saved
+
+  /sessions/{sessionId}/load:
+    get:
+      tags: [SaveLoad]
+      summary: Load saved game state
+      responses:
+        200:
+          description: Loaded
+
+  # ================= RANKINGS =================
+
+  /rankings/global/{gameId}:
+    get:
+      tags: [Rankings]
+      summary: Global ranking
+      parameters:
+        - in: path
+          name: gameId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ranking
+
+  /rankings/friends/{gameId}:
+    get:
+      tags: [Rankings]
+      summary: Friends ranking
+      parameters:
+        - in: path
+          name: gameId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ranking
+
+  /rankings/me/{gameId}:
+    get:
+      tags: [Rankings]
+      summary: Personal ranking
+      parameters:
+        - in: path
+          name: gameId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ranking
+
+  # ================= ACHIEVEMENTS =================
+
+  /achievements:
+    get:
+      tags: [Achievements]
+      summary: List achievements
+      responses:
+        200:
+          description: Achievements
+
+  /users/me/achievements:
+    get:
+      tags: [Achievements]
+      summary: My achievements
+      responses:
+        200:
+          description: My achievements
+
+  # ================= ADMIN =================
+
+  /admin/users:
+    get:
+      tags: [Admin]
+      summary: List users
+      responses:
+        200:
+          description: Users
+
+  /admin/users/{userId}:
+    put:
+      tags: [Admin]
+      summary: Update user role/status
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Updated
+
+  /admin/games:
+    post:
+      tags: [Admin]
+      summary: Create new game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameCreate'
+      responses:
+        201:
+          description: Created
+
+  /admin/games/{gameId}:
+    put:
+      tags: [Admin]
+      summary: Update game config
+      parameters:
+        - in: path
+          name: gameId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Updated
+
+  /admin/games/{gameId}/toggle:
+    patch:
+      tags: [Admin]
+      summary: Enable/Disable game
+      responses:
+        200:
+          description: Toggled
+
+  /admin/statistics:
+    get:
+      tags: [Statistics]
+      summary: System statistics
+      responses:
+        200:
+          description: Stats
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+
+    RegisterRequest:
+      type: object
+      required: [username, email, password]
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        createdAt:
+          type: string
+
+    UserUpdate:
+      type: object
+      properties:
+        username:
+          type: string
+        avatar:
+          type: string
+
+    MessageRequest:
+      type: object
+      properties:
+        content:
+          type: string
+
+    Game:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        boardSize:
+          type: object
+          properties:
+            rows:
+              type: integer
+            cols:
+              type: integer
+        enabled:
+          type: boolean
+
+    GameCreate:
+      type: object
+      required: [name, type]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        boardSize:
+          type: object
+          properties:
+            rows:
+              type: integer
+            cols:
+              type: integer
+
+    GameSession:
+      type: object
+      properties:
+        id:
+          type: string
+        gameId:
+          type: string
+        status:
+          type: string
+        score:
+          type: integer
+        createdAt:
+          type: string
+
+    SessionCreate:
+      type: object
+      properties:
+        timeLimit:
+          type: integer
+        vsComputer:
+          type: boolean
+
+    GameMove:
+      type: object
+      properties:
+        x:
+          type: integer
+        y:
+          type: integer
+        value:
+          type: string
