@@ -1,40 +1,31 @@
 const express = require('express');
 const router = express.Router();
 const { check, body } = require('express-validator');
-const { 
-  signup, 
-  signin, 
-  validate2FA, 
-  requestNewAccessToken, 
-  validateAccessToken, 
-  getUserInfo,
-  getMe,
-  updateProfile
-} = require('../controllers/authController');
+const authController = require('../controllers/authController');
 const { verifyToken } = require('../middleware/authMiddleware');
 const { validateRequest } = require('../middleware/validateRequestMiddleware');
 
-// LEGACY ROUTES (Giữ lại cho backward compatibility)
+// LEGACY ROUTES
 router.post('/register',
   [
     check('username', 'Username must not be empty.').not().isEmpty(),
     check('password', 'Password must have at least 6 characters.').isLength({ min: 6 })
   ],
   validateRequest,
-  signup);
-
-router.post('/login', signin);
-
-router.get('/me', verifyToken, getMe);
-
-router.put('/profile', verifyToken, updateProfile);
+  authController.signup
+);
+router.post('/login', authController.signin);
+router.get('/me', verifyToken, authController.getMe);
+router.put('/profile', verifyToken, authController.updateProfile);
 
 
-// NEW ROUTES (From happy-food-backend)
+// NEW ROUTES
+// GET /api/auth/health
 router.get('/health', (req, res) => {
   return res.status(200).json({ message: "it works bro" });
 });
 
+// POST /api/auth/signup
 router.post(
   '/signup',
   [
@@ -44,9 +35,10 @@ router.post(
     body('password').isString().isLength({ min: 8 }),
   ],
   validateRequest,
-  signup
+  authController.signup
 );
 
+// POST /api/auth/signin
 router.post(
   '/signin',
   [
@@ -54,35 +46,36 @@ router.post(
     body('password').isString().isLength({ min: 8 })
   ],
   validateRequest,
-  signin
+  authController.signin
 );
 
+// POST /api/auth/validate/2fa
 router.post(
   '/validate/2fa',
   [
     // body('tempToken').isString().isLength({ min: 10 }),
   ],
   validateRequest,
-  validate2FA
+  authController.validate2FA
 );
 
-// Frontend expects POST /api/auth/validate/refresh-token with the refresh token
-// in the Authorization header. This reuses the requestNewAccessToken handler.
+// POST /api/auth/validate/refresh-token
 router.post(
   '/validate/refresh-token',
   [
     body('refreshToken').optional().isString()
   ],
   validateRequest,
-  requestNewAccessToken
+  authController.requestNewAccessToken
 );
 
-// Frontend expects GET /api/auth/validate/access-token
+// GET /api/auth/validate/access-token
 router.get(
   '/validate/access-token',
-  validateAccessToken
+  authController.validateAccessToken
 );
 
+// GET /api/auth/user-info
 router.get(
   '/user-info',
   [
@@ -91,7 +84,7 @@ router.get(
   ],
   verifyToken,
   validateRequest,
-  getUserInfo
+  authController.getUserInfo
 );
 
 

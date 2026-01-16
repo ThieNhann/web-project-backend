@@ -56,49 +56,50 @@ const signin = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    // Update last login
     await db('users')
       .where({ id: user.id })
       .update({ last_login: new Date() });
 
     const userId = user.id;
-    const twoFactorToken = signToken({ userId });
 
     // Generate code and twoFactorToken
     // Insert code and twoFactorToken into database with expiration
-    const code = Math.floor(100000 + Math.random() * 899999).toString();
+    // const code = Math.floor(100000 + Math.random() * 899999).toString();
+    // const twoFactorToken = signToken({ userId });
 
     // Check if a 2FA code already exists for this user
-    const existing2fa = await db('two_factor_auth').where({ user_id: userId }).first();
-    console.log("Existing 2FA record:", existing2fa);
-    if (existing2fa) {
-      if (existing2fa.expires_at && new Date(existing2fa.expires_at) < new Date()) {
-        await db('two_factor_auth').where({ user_id: userId }).delete();
-      } else {
-        return res.status(200).json({
-          status: "require2FA",
-          message: "2FA code already sent. Please check your email.",
-        });
-      }
-    }
+    // const existing2fa = await db('two_factor_auth').where({ user_id: userId }).first();
+    // console.log("Existing 2FA record:", existing2fa);
+    // if (existing2fa) {
+    //   if (existing2fa.expires_at && new Date(existing2fa.expires_at) < new Date()) {
+    //     await db('two_factor_auth').where({ user_id: userId }).delete();
+    //   } else {
+    //     return res.status(200).json({
+    //       status: "require2FA",
+    //       message: "2FA code already sent. Please check your email.",
+    //     });
+    //   }
+    // }
 
     // Send email with code
-    await sendMail(user.email, code);
-    await db('two_factor_auth').insert({
-      user_id: userId,
-      code,
-      two_factor_token: twoFactorToken,
-      expires_at: new Date(Date.now() + Number(process.env.TWO_FA_EXPIRES_IN) || 15 * 60 * 1000),
-    });
+    // await sendMail(user.email, code);
+    // await db('two_factor_auth').insert({
+    //   user_id: userId,
+    //   code,
+    //   two_factor_token: twoFactorToken,
+    //   expires_at: new Date(Date.now() + Number(process.env.TWO_FA_EXPIRES_IN) || 15 * 60 * 1000),
+    // });
 
     const accessToken = signToken({ userId }, "1m");
-    const refreshToken = signToken({ userId, type: "refresh" });
+    const refreshToken = signToken({ userId, type: "refresh" }, "7d");
 
     return res.status(200).json({
       status: "require2FA",
       message: "2FA code sent to email",
       accessToken: accessToken,
       refreshToken: refreshToken,
-      twoFactorToken,
+      // twoFactorToken,
     });
   } catch (err) {
     console.log(err);
@@ -133,9 +134,9 @@ const validate2FA = async (req, res) => {
 
     const userId = user.id;
     const accessToken = signToken({ userId, username: user.username }, "1m");
-    const refreshToken = signToken({ userId, type: "refresh" });
+    const refreshToken = signToken({ userId, type: "refresh" }, "7d");
 
-    // delete used 2FA record
+    // Delete used 2FA record
     await db('two_factor_auth').where({ user_id: record.user_id }).delete();
 
     return res.status(200).json({
@@ -158,7 +159,6 @@ const validate2FA = async (req, res) => {
 
 // GET USER INFO
 const getUserInfo = async (req, res) => {
-  // Prefer userId injected by auth middleware; fall back to params/query/body for flexibility
   const userId = req.user.userId || req.params?.userId || req.query?.userId || req.body?.userId;
 
   try {
@@ -203,7 +203,6 @@ const requestNewAccessToken = async (req, res) => {
       return res.status(401).json({ message: "Invalid or expired refresh token" });
     }
 
-    // Ensure this is a refresh token if your tokens include a type field
     if (payload.type && payload.type !== "refresh") {
       return res.status(400).json({ message: "Provided token is not a refresh token" });
     }
@@ -211,11 +210,9 @@ const requestNewAccessToken = async (req, res) => {
     const userId = payload.userId || payload.user_id;
     if (!userId) return res.status(400).json({ message: "Invalid token payload" });
 
-    // Issue a new access token (short-lived)
+    // Gen new accessToken
     const accessToken = signToken({ userId, username: payload.username }, "1m");
 
-    // For now we reuse the same refresh token. If you want rotation, issue a new
-    // refresh token here instead.
     return res.status(200).json({ accessToken, refreshToken });
   } catch (err) {
     console.error(err);
@@ -240,8 +237,6 @@ const validateAccessToken = async (req, res) => {
       return res.status(401).json({ message: "Invalid or expired access token" });
     }
 
-    // If you ever tag refresh tokens with a `type` field, make sure we are
-    // not accidentally validating a refresh token here.
     if (payload.type && payload.type === "refresh") {
       return res.status(400).json({ message: "Provided token is not an access token" });
     }
@@ -261,7 +256,7 @@ const validateAccessToken = async (req, res) => {
   }
 };
 
-// 3. GET ME
+// GET ME
 const getMe = async (req, res) => {
   try {
     // req.user.id được authMiddleware gắn lên req
