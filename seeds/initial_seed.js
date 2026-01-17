@@ -57,4 +57,11 @@ exports.seed = async function(knex) {
     { id: 1, user_id: users[1].id, achievement_id: achievements[0].id, unlocked_at: new Date() },
     { id: 2, user_id: users[0].id, achievement_id: achievements[1].id, unlocked_at: new Date() }
   ]);
+
+  // User Rankings
+  await knex('game_records').insert([
+    { user_id: users[0].id, game_id: games[0].id, score: 2500, play_time: 110 },
+    { user_id: users[1].id, game_id: games[0].id, score: 1800, play_time: 130 },
+    { user_id: users[2].id, game_id: games[0].id, score: 2200, play_time: 100 }
+  ]);
 };
