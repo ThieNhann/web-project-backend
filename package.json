@@ -1,9 +1,11 @@
 {
   "name": "web-project-backend",
+  "type": "module",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon server.js"
   },
   "keywords": [],
   "author": "",
@@ -19,11 +21,13 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "knex": "^3.1.0",
+    "multer": "^2.0.2",
     "nodemailer": "^7.0.12",
     "pg": "^8.16.3",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@types/multer": "^2.0.0",
     "nodemon": "^3.1.11"
   }
 }
