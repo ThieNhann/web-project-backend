@@ -45,4 +45,16 @@ exports.seed = async function(knex) {
   await knex('messages').insert([
     { sender_id: users[1].id, receiver_id: users[2].id, content: 'Wanna play Caro?' }
   ]);
+
+  // Achievements
+  const achievements = await knex('achievements').insert([
+    { id: 1, name: 'First Win', description: 'Win your first game', icon_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzWbJMKCp6HocUPQw8yfOJtcF4Im6nNlS1Mw&s' },
+    { id: 2, name: 'High Scorer', description: 'Score over 2000 points in a game', icon_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzWbJMKCp6HocUPQw8yfOJtcF4Im6nNlS1Mw&' }
+  ]).returning('id');
+
+  // User Achievements
+  await knex('user_achievements').insert([
+    { id: 1, user_id: users[1].id, achievement_id: achievements[0].id, unlocked_at: new Date() },
+    { id: 2, user_id: users[0].id, achievement_id: achievements[1].id, unlocked_at: new Date() }
+  ]);
 };

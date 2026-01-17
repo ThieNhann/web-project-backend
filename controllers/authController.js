@@ -1,6 +1,4 @@
 const db = require('../config/db');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const { hashPassword, verifyPassword } = require('../utils/password');
 const { signToken, verifyToken } = require('../utils/jwt');
@@ -43,7 +41,7 @@ const signin = async (req, res) => {
     // Check if user exists
     const user = await db('users')
       .where({ email })
-      .select('id', 'username', 'display_name', 'email', 'password', 'is_active')
+      .select('id', 'username', 'full_name', 'email', 'password', 'is_active')
       .first();
 
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
@@ -144,7 +142,7 @@ const validate2FA = async (req, res) => {
       user: {
         userId: user.id,
         username: user.username,
-        displayName: user.display_name,
+        fullName: user.full_name,
         email: user.email,
         role: user.role,
       },
@@ -161,12 +159,13 @@ const validate2FA = async (req, res) => {
 const getUserInfo = async (req, res) => {
   const userId = req.user.userId || req.params?.userId || req.query?.userId || req.body?.userId;
 
+  console.log("[DEBUG]: userId =", userId);
   try {
     if (!userId) return res.status(400).json({ message: "Missing userId" });
 
     const user = await db('users')
       .where({ id: userId })
-      .select('id', 'username', 'display_name', 'email', 'is_active', 'bio', 'profile_image_url', 'is_verified')
+      .select('id', 'username', 'full_name', 'email', 'is_active', 'bio', 'avatar_url', 'is_verified')
       .first();
 
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -175,11 +174,11 @@ const getUserInfo = async (req, res) => {
     const userInfo = {
       userId: user.id,
       username: user.username || null,
-      displayName: user.display_name || null,
+      fullName: user.full_name || null,
       email: user.email,
       bio: user.bio || null,
-      profileImageUrl: user.profile_image_url
-        ? process.env.SERVER_URL + user.profile_image_url
+      avatarUrl: user.avatar_url
+        ? process.env.SERVER_URL + user.avatar_url
         : null,
       isVerified: user.is_verified || false,
     };
