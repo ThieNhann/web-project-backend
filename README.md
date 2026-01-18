@@ -44,6 +44,13 @@ npm run dev
 
 # Version
 
+## v0.2.0 (2025-01-16)
+- Auth controller: Signup, Signin, Signout, requestNewAccessToken, verifyAccessToken, getUserInfo.
+- Profile: show Achievements, Rankings, Edit profile.
+- Search controller.
+- Admin controller: statistic and game-management (not done user-management yet).
+- Game controller (not done yet).
+
 ## v0.1.0 (2025-01-16)
 - Setup Supabase database with initial schema.
 - Auth controller with some basic routes.
