@@ -224,7 +224,7 @@ export const requestNewAccessToken = async (req, res) => {
     if (!userId) return res.status(400).json({ message: "Invalid token payload" });
 
     // Gen new accessToken
-    const accessToken = signToken({ userId, username: payload.username }, "1m");
+    const accessToken = signToken({ userId, username: payload.username }, "15m");
 
     return res.status(200).json({ accessToken, refreshToken });
   } catch (err) {
