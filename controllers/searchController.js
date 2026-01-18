@@ -12,7 +12,7 @@ export async function searchUser(req, res) {
 
     const results = await db("users")
       .select("id", "username", "full_name", "bio", "avatar_url")
-      .where("username", "like", `%${searchQuery}%`)
+      .where("username", "ilike", `%${searchQuery}%`)
       .where("is_active", true)
       .limit(limit)
       .offset(offset);

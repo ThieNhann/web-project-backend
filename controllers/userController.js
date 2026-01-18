@@ -133,3 +133,85 @@ export async function addFriend(req, res) {
     return res.status(500).json({ message: "Internal server error" });
   }
 }
+
+export async function removeFriend(req, res) {
+  //console.log("[DEBUG] removeFriend called");
+  const { userId } = req.params;
+  const requesterId = req.user.userId;
+  //console.log("[DEBUG] Requester ID:", requesterId, "Target User ID:", userId);
+
+  try {
+    if (!userId) {
+      return res.status(400).json({ message: "Missing userId" });
+    }
+    if (requesterId === userId) {
+      return res.status(400).json({ message: "Cannot remove yourself as a friend" });
+    }
+
+    const friendship = await db("friends")
+      .where(function () {
+        this.where({ user_id: requesterId, friend_id: userId });
+      })
+      .orWhere(function () {
+        this.where({ user_id: userId, friend_id: requesterId });
+      })
+      .first();
+
+    if (!friendship) {
+      return res.status(404).json({ message: "Friendship not found" });
+    }
+
+    await db("friends").where({ id: friendship.id }).del();
+
+    return res.status(200).json({ message: "Friend removed successfully" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+export async function createOrGetDirectMessage(req, res) {
+  //console.log("[DEBUG] createOrGetDirectMessage called");
+  const { userId } = req.params;
+  const requesterId = req.user.userId;
+  //console.log("[DEBUG] Requester ID:", requesterId, "Target User ID:", userId);
+
+  try {
+    if (!userId) {
+      return res.status(400).json({ message: "Missing userId" });
+    }
+    if (requesterId === userId) {
+      return res.status(400).json({ message: "Cannot create direct message with yourself" });
+    }
+
+    const targetUser = await db("users").where({ id: userId }).first();
+    if (!targetUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    if (!targetUser.is_active) {
+      return res.status(403).json({ message: "Target user's account is disabled" });
+    }
+
+    let existingConversation = await db("conversations")
+      .join("conversation_members", "conversations.id", "conversation_members.conversation_id")
+      .whereIn("conversation_members.user_id", [requesterId, userId])
+      .groupBy("conversations.id")
+      .havingRaw("COUNT(DISTINCT conversation_members.user_id) = 2")
+      .select("conversations.id")
+      .first();
+
+    console.log("[DEBUG] Existing conversation:", existingConversation);
+
+    if (existingConversation) {
+      return res.status(200).json({
+        hasConversation: true,
+        conversationId: existingConversation.id,
+      });
+    }
+
+    return res.status(200).json({ hasConversation: false });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}

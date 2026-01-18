@@ -63,8 +63,9 @@ exports.up = async function (knex) {
     table.timestamp("created_at").defaultTo(knex.fn.now());
   });
 
+  // HỘI THOẠI / CONVERSATIONS
   await knex.schema.createTable("conversations", (table) => {
-    table.increments("conversation_id").primary();
+    table.increments("id").primary();
     table.timestamp("created_at").defaultTo(knex.fn.now());
   });
 
@@ -72,21 +73,17 @@ exports.up = async function (knex) {
   await knex.schema.createTable("messages", (table) => {
     table.increments("id").primary();
     table.string("sender_id").references("id").inTable("users").onDelete("CASCADE");
-    table.string("receiver_id").references("id").inTable("users").onDelete("CASCADE");
+    table.integer("conversation_id").references("id").inTable("conversations").onDelete("CASCADE");
     table.text("content").notNullable();
-    table.boolean("is_read").defaultTo(false);
     table.timestamp("created_at").defaultTo(knex.fn.now());
   });
 
   await knex.schema.createTable("conversation_members", (table) => {
-    table.increments("id").primary();
-    table
-      .integer("conversation_id")
-      .references("conversation_id")
-      .inTable("conversations")
-      .onDelete("CASCADE");
+    table.integer("conversation_id").references("id").inTable("conversations").onDelete("CASCADE");
     table.string("user_id").references("id").inTable("users").onDelete("CASCADE");
     table.timestamp("created_at").defaultTo(knex.fn.now());
+
+    table.primary(["conversation_id", "user_id"]);
   });
 
   // THÀNH TỰU

@@ -20,6 +20,7 @@ import friendRequestRoutes from "./routes/friendRoutes.js"; // Friend request ro
 import userRoutes from "./routes/userRoutes.js";
 import searchRoutes from "./routes/searchRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -34,6 +35,7 @@ app.use("/api/friend-requests", friendRequestRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/messages", messageRoutes);
 
 app.get("/", (req, res) => {
   res.send("chạy ok");
