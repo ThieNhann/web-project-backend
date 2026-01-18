@@ -1,8 +1,10 @@
-const express = require('express');
-const { validateRequest } = require('../middleware/validateRequestMiddleware');
-const adminController = require('../controllers/adminController');
+import express from 'express';
+import { validateRequest } from '../middleware/validateRequestMiddleware.js';
+import adminController from '../controllers/adminController.js';
+
 const router = express.Router();
 
+// "{{baseURL}}/api/admin"
 
 // -- GAME MANAGEMENT ROUTES --
 router.get('/game-management/available-games', adminController.getAvailableGames);
@@ -18,5 +20,10 @@ router.get('/statistics/24hour-server-load', adminController.get24HourServerLoad
 router.get('/statistics/monthly-game-type-percentage', adminController.getMonthlyGameTypePercentage);
 router.get('/statistics/yearly-players', adminController.getYearlyPlayers);
 
+// -- USER MANAGEMENT ROUTES --
+router.get('/user-management', adminController.getUsers);
+router.get('/user-management/search', adminController.searchUsers);
+router.post('/user-management/activate', adminController.activateUser);
+router.post('/user-management/deactivate', adminController.deactivateUser);
 
-module.exports = router;
+export default router;

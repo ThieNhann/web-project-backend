@@ -1,5 +1,7 @@
 import db from '../config/db.js';
 
+// --------------------------------- GAME MANAGEMENT CONTROLLERS -----------------------------------------
+
 const getAvailableGames = async (req, res) => {
     try {
         const games = await db('games')
@@ -98,6 +100,9 @@ const updateBoardSize = async (req, res) => {
     }
 };
 
+
+// --------------------------------- STATISTICS CONTROLLERS -----------------------------------------
+
 // Lấy số người chơi hoạt động 24h qua
 const get24HourPlayers = async (req, res) => {
     try {
@@ -178,15 +183,93 @@ const getYearlyPlayers = async (req, res) => {
     }
 };
 
+// --------------------------------- USERS MANAGEMENT CONTROLLERS -----------------------------------------
+
+// Lấy danh sách user có phân trang (?page=1 default)
+const getUsers = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10; // Mỗi trang 10 user
+        const offset = (page - 1) * limit;
+
+        const users = await db('users')
+            .select('id', 'username', 'full_name', 'role', 'is_active', 'created_at')
+            .limit(limit)
+            .offset(offset)
+            .orderBy('created_at', 'desc');
+
+        const totalCount = await db('users').count('id as count').first();
+
+        res.json({
+            users,
+            totalPages: Math.ceil(parseInt(totalCount.count) / limit),
+            currentPage: page
+        });
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).json({ error: 'Failed to fetch users' });
+    }
+};
+
+// Tìm kiếm user theo username hoặc full_name
+const searchUsers = async (req, res) => {
+    try {
+        const { query } = req.query;
+        if (!query) return res.status(400).json({ error: 'Query is required' });
+
+        const users = await db('users')
+            .where('username', 'ilike', `%${query}%`)
+            .orWhere('full_name', 'ilike', `%${query}%`)
+            .select('id', 'username', 'full_name', 'role', 'is_active');
+
+        res.json(users);
+    } catch (error) {
+        console.error('Search failed:', error);
+        res.status(500).json({ error: 'Search failed' });
+    }
+};
+
+// Kích hoạt tài khoản
+const activateUser = async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const updated = await db('users').where({ id: userId }).update({ is_active: true });
+        
+        if (!updated) return res.status(404).json({ error: 'User not found' });
+        res.json({ message: 'User account activated' });
+    } catch (error) {
+        res.status(500).json({ error: 'Activation failed' });
+    }
+};
+
+// Khóa tài khoản
+const deactivateUser = async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const updated = await db('users').where({ id: userId }).update({ is_active: false });
+        
+        if (!updated) return res.status(404).json({ error: 'User not found' });
+        res.json({ message: 'User account deactivated' });
+    } catch (error) {
+        res.status(500).json({ error: 'Deactivation failed' });
+    }
+};
+
 export default {
     getAvailableGames,
     getGameDetails,
     activateGameMode,
     deactivateGameMode,
     updateBoardSize,
+
     get24HourPlayers,
     get24HourGames,
     get24HourServerLoad,
     getMonthlyGameTypePercentage,
-    getYearlyPlayers
+    getYearlyPlayers,
+
+    getUsers,
+    searchUsers,
+    activateUser,
+    deactivateUser,
 }
