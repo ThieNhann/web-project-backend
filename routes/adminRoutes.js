@@ -34,5 +34,30 @@ router.put(
     adminController.updateBoardSize
 );
 
+// GET /api/admin/statistics/24hour-players
+router.get(
+    '/statistics/24hour-players', 
+    adminController.get24HourPlayers);
+
+// GET /api/admin/statistics/24hour-games
+router.get(
+    '/statistics/24hour-games', 
+    adminController.get24HourGames);
+
+// GET /api/admin/statistics/24hour-server-load
+router.get(
+    '/statistics/24hour-server-load', 
+    adminController.get24HourServerLoad);
+
+// GET /api/admin/statistics/monthly-game-type-percentage
+router.get(
+    '/statistics/monthly-game-type-percentage', 
+    adminController.getMonthlyGameTypePercentage);
+
+// GET /api/admin/statistics/yearly-players
+router.get(
+    '/statistics/yearly-players', 
+    adminController.getYearlyPlayers);
+
 
 module.exports = router;
