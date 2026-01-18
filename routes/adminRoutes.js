@@ -1,6 +1,5 @@
-const express = require('express');
-const { validateRequest } = require('../middleware/validateRequestMiddleware');
-const adminController = require('../controllers/adminController');
+import express from 'express';
+import adminController from '../controllers/adminController.js';
 const router = express.Router();
 
 // GET /api/admin/game-management/available-games
@@ -59,5 +58,4 @@ router.get(
     '/statistics/yearly-players', 
     adminController.getYearlyPlayers);
 
-
-module.exports = router;
+export default router;

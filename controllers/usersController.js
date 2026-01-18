@@ -1,6 +1,5 @@
 
-
-const db = require('../config/db');
+import db from '../config/db.js';
 
 const getUsersAchievements = async (req, res) => {
   try {
@@ -86,8 +85,7 @@ const getUsersRankings = async (req, res) => {
   }
 }
 
-module.exports = {
+export default {
   getUsersAchievements,
   getUsersRankings,
 };
-

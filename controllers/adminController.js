@@ -1,4 +1,4 @@
-const db = require('../config/db');
+import db from '../config/db.js';
 
 const getAvailableGames = async (req, res) => {
     try {
@@ -178,7 +178,7 @@ const getYearlyPlayers = async (req, res) => {
     }
 };
 
-module.exports = {
+export default {
     getAvailableGames,
     getGameDetails,
     activateGameMode,
@@ -189,4 +189,4 @@ module.exports = {
     get24HourServerLoad,
     getMonthlyGameTypePercentage,
     getYearlyPlayers
-};
+}

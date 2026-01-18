@@ -1,91 +1,100 @@
-const express = require('express');
+// const express = require("express");
+// const router = express.Router();
+// const { check, body } = require("express-validator");
+// const authController = require("../controllers/authController");
+// const { verifyToken } = require("../middleware/authMiddleware");
+// const { validateRequest } = require("../middleware/validateRequestMiddleware");
+
+import express from "express";
+import { body } from "express-validator";
+import {
+  signin,
+  getMe,
+  updateProfile,
+  signup,
+  requestNewAccessToken,
+  validateAccessToken,
+  getUserInfo,
+} from "../controllers/authController.js";
+import { verifyToken } from "../middleware/authMiddleware.js";
+import { validateRequest } from "../middleware/validateRequestMiddleware.js";
+
 const router = express.Router();
-const { check, body } = require('express-validator');
-const authController = require('../controllers/authController');
-const { verifyToken } = require('../middleware/authMiddleware');
-const { validateRequest } = require('../middleware/validateRequestMiddleware');
 
 // LEGACY ROUTES
-router.post('/register',
+router.post(
+  "/register",
   [
-    check('username', 'Username must not be empty.').not().isEmpty(),
-    check('password', 'Password must have at least 6 characters.').isLength({ min: 6 })
+    body("username", "Username must not be empty.").not().isEmpty(),
+    body("password", "Password must have at least 6 characters.").isLength({ min: 6 }),
   ],
   validateRequest,
-  authController.signup
+  signup
 );
-router.post('/login', authController.signin);
-router.get('/me', verifyToken, authController.getMe);
-router.put('/profile', verifyToken, authController.updateProfile);
-
+router.post("/login", signin);
+router.get("/me", verifyToken, getMe);
+router.put("/profile", verifyToken, updateProfile);
 
 // NEW ROUTES
 // GET /api/auth/health
-router.get('/health', (req, res) => {
+router.get("/health", (req, res) => {
   return res.status(200).json({ message: "it works bro" });
 });
 
 // POST /api/auth/signup
 router.post(
-  '/signup',
+  "/signup",
   [
-    body('firstName').optional().isString().isLength({ max: 100 }),
-    body('lastName').optional().isString().isLength({ max: 100 }),
-    body('email').isEmail().normalizeEmail(),
-    body('password').isString().isLength({ min: 8 }),
+    body("firstName").optional().isString().isLength({ max: 100 }),
+    body("lastName").optional().isString().isLength({ max: 100 }),
+    body("email").isEmail().normalizeEmail(),
+    body("password").isString().isLength({ min: 8 }),
   ],
   validateRequest,
-  authController.signup
+  signup
 );
 
 // POST /api/auth/signin
 router.post(
-  '/signin',
+  "/signin",
   [
-    body('email').isString().isLength({ min: 3 }).trim(),
-    body('password').isString().isLength({ min: 8 })
+    body("email").isString().isLength({ min: 3 }).trim(),
+    body("password").isString().isLength({ min: 8 }),
   ],
   validateRequest,
-  authController.signin
+  signin
 );
 
-// POST /api/auth/validate/2fa
-router.post(
-  '/validate/2fa',
-  [
-    // body('tempToken').isString().isLength({ min: 10 }),
-  ],
-  validateRequest,
-  authController.validate2FA
-);
+// // POST /api/auth/validate/2fa
+// router.post(
+//   "/validate/2fa",
+//   [
+//     // body('tempToken').isString().isLength({ min: 10 }),
+//   ],
+//   validateRequest,
+//   authController.validate2FA
+// );
 
 // POST /api/auth/validate/refresh-token
 router.post(
-  '/validate/refresh-token',
-  [
-    body('refreshToken').optional().isString()
-  ],
+  "/validate/refresh-token",
+  [body("refreshToken").optional().isString()],
   validateRequest,
-  authController.requestNewAccessToken
+  requestNewAccessToken
 );
 
 // GET /api/auth/validate/access-token
-router.get(
-  '/validate/access-token',
-  authController.validateAccessToken
-);
-
+router.get("/validate/access-token", validateAccessToken);
 // GET /api/auth/user-info
 router.get(
-  '/user-info',
+  "/user-info",
   [
-    body('email').optional().isEmail().normalizeEmail(),
-    body('password').optional().isString().isLength({ min: 8 })
+    body("email").optional().isEmail().normalizeEmail(),
+    body("password").optional().isString().isLength({ min: 8 }),
   ],
   verifyToken,
   validateRequest,
-  authController.getUserInfo
+  getUserInfo
 );
 
-
-module.exports = router;
+export default router;

@@ -1,7 +1,7 @@
-const express = require('express');
-const { validateRequest } = require('../middleware/validateRequestMiddleware');
+import express from 'express';
+import { validateRequest } from '../middleware/validateRequestMiddleware.js';
 const router = express.Router();
-const usersController = require('../controllers/usersController');
+import usersController from '../controllers/usersController.js';
 
 
 // GET /api/users/:userId/achievements?page={page}
@@ -18,4 +18,4 @@ router.get('/:userId/rankings',
     usersController.getUsersRankings
 )
 
-module.exports = router;
+export default router;

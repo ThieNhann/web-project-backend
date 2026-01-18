@@ -1,18 +1,19 @@
-require('dotenv').config();
+// require('dotenv').config();
+import "dotenv/config";
 
-module.exports = {
+export default {
   development: {
-    client: 'pg',
+    client: "pg",
     connection: {
       connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false }
+      ssl: { rejectUnauthorized: false },
     },
     migrations: {
-      directory: './migrations',
-      tableName: 'knex_migrations'
+      directory: "./migrations",
+      tableName: "knex_migrations",
     },
     seeds: {
-      directory: './seeds'
-    }
-  }
+      directory: "./seeds",
+    },
+  },
 };
