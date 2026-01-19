@@ -1,21 +1,9 @@
 import multer from "multer";
 import path from "path";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
+import { uploadFile } from "../services/supabaseStorage.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Configure storage for profile images
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "../uploads"));
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  },
-});
+// Use memory storage instead of disk storage
+const storage = multer.memoryStorage();
 
 // File filter to accept only images
 const fileFilter = (req, file, cb) => {
@@ -30,7 +18,7 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Configure multer for profile avatar
+// Configure multer for profile avatar with memory storage
 const uploadProfileImage = multer({
   storage: storage,
   limits: {
@@ -40,14 +28,31 @@ const uploadProfileImage = multer({
 });
 
 // Middleware for profile avatar upload: accept single 'avatar' field
-// export const uploadProfileAvatar = uploadProfileImage.single('avatar');
 export function uploadProfileAvatar(req, res, next) {
-  uploadProfileImage.single("avatar")(req, res, function (err) {
+  uploadProfileImage.single("avatar")(req, res, async function (err) {
     if (err instanceof multer.MulterError) {
       return res.status(400).json({ message: err.message });
     } else if (err) {
       return res.status(400).json({ message: err.message });
     }
+
+    // If file is present, upload to Supabase
+    if (req.file) {
+      try {
+        const { publicUrl, path: filePath } = await uploadFile(
+          req.file.buffer,
+          req.file.originalname,
+          req.file.mimetype
+        );
+        // Store file info in request for use in controller
+        req.file.supabaseUrl = publicUrl;
+        req.file.supabasePath = filePath;
+      } catch (uploadError) {
+        console.error("Supabase upload error:", uploadError);
+        return res.status(500).json({ message: "Failed to upload file to storage" });
+      }
+    }
+
     next();
   });
 }

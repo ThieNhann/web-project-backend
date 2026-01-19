@@ -1,4 +1,5 @@
 import db from "../config/db.js";
+import { deleteFile } from "../services/supabaseStorage.js";
 import "dotenv/config";
 
 export async function editProfile(req, res) {
@@ -23,9 +24,13 @@ export async function editProfile(req, res) {
 
     // Handle avatar file upload
     if (req.file) {
-      const avatarUrl = `/api/profile/files/${req.file.filename}`;
-      // console.log("[DEBUG] New avatar uploaded:", avatarUrl);
+      // Use Supabase URL directly instead of local path
+      const avatarUrl = req.file.supabaseUrl;
       data.avatar_url = avatarUrl;
+      
+      // Store the Supabase path for future deletion if needed
+      data.avatar_url = req.file.supabasePath;
+      // console.log("[DEBUG] New avatar uploaded from Supabase:", avatarUrl);
     }
 
     if (Object.keys(data).length === 0) {
@@ -41,11 +46,11 @@ export async function editProfile(req, res) {
 
     return res.status(200).json({
       profile: {
-        userId: updated.id,
-        username: updated.username,
-        fullName: updated.full_name,
-        bio: updated.bio,
-        avatarUrl: updated.avatar_url ? process.env.SERVER_URL + updated.avatar_url : null,
+        userId: updated[0].id,
+        username: updated[0].username,
+        fullName: updated[0].full_name,
+        bio: updated[0].bio,
+        avatarUrl: updated[0].avatar_url || null,
       },
     });
   } catch (err) {
