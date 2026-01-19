@@ -231,3 +231,84 @@ export const updateGameTimer = async (req, res) => {
     });
   }
 };
+
+export const postGameRecord = async (req, res) => {
+  try {
+    const { game_id, score, play_time } = req.body;
+    const user_id = req.user.userId;
+    // Check required fields
+    if (!game_id || score === undefined || play_time === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields: game_id, score, play_time",
+      });
+    }
+    // Check game exists
+    const game = await db("games").where("id", game_id).first();
+    if (!game) {
+      return res.status(404).json({
+        success: false,
+        message: "Game not found",
+      });
+    }
+    // Add game record
+    const [gameRecord] = await db("game_records")
+      .insert({
+        user_id,
+        game_id,
+        score,
+        play_time,
+      })
+      .returning("*");
+    res.status(201).json({
+      success: true,
+      message: "Game record added successfully",
+      data: {
+        ...gameRecord,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while adding game record",
+    });
+  }
+};
+
+export const getGameRecords = async (req, res) => {
+  try {
+    const { game_id } = req.query;
+    const user_id = req.user.userId;
+    // Build query
+    let query = db("game_records")
+      .select(
+        "game_records.id",
+        "game_records.user_id",
+        "game_records.game_id",
+        "game_records.score",
+        "game_records.play_time",
+        "game_records.played_at",
+        "games.name as game_name",
+      )
+      .join("games", "game_records.game_id", "games.id")
+      .where("game_records.user_id", user_id)
+      .orderBy("game_records.played_at", "desc");
+    if (game_id) {
+      query = query.where("game_records.game_id", game_id);
+    }
+    const records = await query;
+    res.json({
+      success: true,
+      count: records.length,
+      data: records,
+    });
+  }
+  catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while retrieving game records",
+    });
+  }
+};
