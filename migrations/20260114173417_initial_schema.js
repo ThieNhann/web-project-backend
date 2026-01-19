@@ -11,7 +11,7 @@ export async function up(knex) {
     table.string("password").notNullable();
     table.string("full_name");
     table.string("role").defaultTo("user");
-    table.string("avatar_url").defaultTo("default_avatar.png");
+    table.string("avatar_url");
     table.string("bio");
     table.boolean("is_active").defaultTo(true);
     table.timestamp("last_login");
@@ -24,7 +24,7 @@ export async function up(knex) {
     table.string("name").notNullable();
     table.string("code").unique().notNullable();
     table.string("description");
-    table.integer('board_size').defaultTo(4);
+    table.integer("board_size").defaultTo(4);
     table.boolean("is_active").defaultTo(true);
     table.timestamps(true, true);
   });
@@ -111,6 +111,8 @@ export async function down(knex) {
   await knex.schema.dropTableIfExists("user_achievements");
   await knex.schema.dropTableIfExists("achievements");
   await knex.schema.dropTableIfExists("messages");
+  await knex.schema.dropTableIfExists("conversation_members");
+  await knex.schema.dropTableIfExists("conversations");
   await knex.schema.dropTableIfExists("reviews");
   await knex.schema.dropTableIfExists("friends");
   await knex.schema.dropTableIfExists("game_records");

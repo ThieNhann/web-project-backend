@@ -50,6 +50,40 @@ export async function getMessageList(req, res) {
   }
 }
 
+export async function getMessageMeta(req, res) {
+  try {
+    console.log("[DEBUG] getMessageMeta called");
+    const { conversationId } = req.params;
+    const requesterId = req.user ? req.user.userId : null;
+
+    const isMember = await db("conversation_members")
+      .where({ conversation_id: conversationId, user_id: requesterId })
+      .first();
+    if (!isMember) {
+      return res.status(403).json({ message: "Access denied to this conversation" });
+    }
+
+    const conversation = await db("conversations as c")
+      .join("conversation_members as cm", "c.id", "cm.conversation_id")
+      .join("users as u", "cm.user_id", "u.id")
+      .where("c.id", conversationId)
+      .andWhere("cm.user_id", "<>", requesterId)
+      .select("u.username", "u.avatar_url")
+      .first();
+
+    console.log("[DEBUG] Retrieved conversation meta:", conversation);
+
+    return res.status(200).json({
+      conversationId: conversationId,
+      username: conversation.username,
+      avatarUrl: conversation.avatar_url ? process.env.SERVER_URL + conversation.avatar_url : null,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 export async function getMessageContent(req, res) {
   try {
     //console.log("[DEBUG] getMessageContent called");
