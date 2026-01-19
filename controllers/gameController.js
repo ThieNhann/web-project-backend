@@ -101,7 +101,7 @@ export const loadGame = async (req, res) => {
     const parsedSaves = saves.map((save) => ({
       ...save,
     }));
-
+    
     res.json({
       success: true,
       count: parsedSaves.length,
@@ -112,6 +112,122 @@ export const loadGame = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error while loading saved games",
+    });
+  }
+};
+
+export const getGameBoardSize = async (req, res) => {
+  const { id: gameId } = req.params;
+  try {
+    const game = await db("games")
+      .where("id", gameId)
+      .select("board_width", "board_height")
+      .first();
+    if (!game) {
+      return res.status(404).json({
+        success: false,
+        message: "Game not found",
+      });
+    }
+    res.json({
+      success: true,
+      data: {
+        board_width: game.board_width,
+        board_height: game.board_height,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while getting game board size",
+    });
+  }
+};
+
+export const updateGameBoardSize = async (req, res) => {
+  const { id: gameId } = req.params;
+  const { board_width, board_height } = req.body;
+  try {
+    const updatedRows = await db("games")
+      .where("id", gameId)
+      .update({
+        board_width: board_width,
+        board_height: board_height,
+        updated_at: db.fn.now(),
+      });
+    if (updatedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Game not found or no changes made",
+      });
+    }
+    res.json({
+      success: true,
+      message: "Game board size updated successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while updating game board size",
+    });
+  }
+};
+
+export const getGameTimer = async (req, res) => {
+  const { id: gameId } = req.params;
+  try {
+    const game = await db("games")
+      .where("id", gameId)
+      .select("timer")
+      .first();
+    if (!game) {
+      return res.status(404).json({
+        success: false,
+        message: "Game not found",
+      });
+    }
+    res.json({
+      success: true,
+      data: {
+        timer: game.timer,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while getting game timer",
+    });
+  }
+};
+
+export const updateGameTimer = async (req, res) => {
+  const { id: gameId } = req.params;
+  const { timer } = req.body;
+  try {
+    const updatedRows = await db("games")
+      .where("id", gameId)
+      .update({
+        timer: timer,
+        updated_at: db.fn.now(),
+      });
+    if (updatedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Game not found or no changes made",
+      });
+    }
+    res.json({
+      success: true,
+      message: "Game timer updated successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while updating game timer",
     });
   }
 };
