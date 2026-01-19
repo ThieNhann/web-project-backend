@@ -10,6 +10,7 @@ import friendRequestRoutes from "./routes/friendRoutes.js"; // Friend request ro
 import gameRoutes from "./routes/gameRoutes.js"; // Game routes
 import searchRoutes from "./routes/searchRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -27,6 +28,7 @@ app.use("/api/games", gameRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 app.get("/", (req, res) => {
   res.send("chạy ok");
