@@ -26,13 +26,13 @@ export async function seed(knex) {
 
   // 7 games
   const games = await knex('games').insert([
-    { id: 1, name: 'Caro 5', code: 'caro_5', description: 'Win with 5 pieces in a row' },
-    { id: 2, name: 'Caro 4', code: 'caro_4', description: 'Win with 4 pieces in a row' },
-    { id: 3, name: 'Tic-tac-toe', code: 'tictactoe', description: 'Classic 3x3 board game' },
-    { id: 4, name: 'Snake', code: 'snake', description: 'Move and collect food' },
-    { id: 5, name: 'Match 3', code: 'match_3', description: 'Arrange candies like Candy Crush' },
-    { id: 6, name: 'Memory Card', code: 'memory_card', description: 'Find matching card pairs' },
-    { id: 7, name: 'Sketch', code: 'sketch', description: 'Create freehand drawings' }
+    { id: 1, name: 'Caro 5', code: 'caro_5', description: 'Win with 5 pieces in a row', board_width: 10, board_height: 10, timer: 0 },
+    { id: 2, name: 'Caro 4', code: 'caro_4', description: 'Win with 4 pieces in a row', board_width: 10, board_height: 10, timer: 0 },
+    { id: 3, name: 'Tic-tac-toe', code: 'tictactoe', description: 'Classic 3x3 board game', board_width: 3, board_height: 3, timer: 0 },
+    { id: 4, name: 'Snake', code: 'snake', description: 'Move and collect food', board_width: 10, board_height: 10, timer: 60 },
+    { id: 5, name: 'Match 3', code: 'match_3', description: 'Arrange candies like Candy Crush', board_width: 10, board_height: 10, timer: 60 },
+    { id: 6, name: 'Memory Card', code: 'memory_card', description: 'Find matching card pairs', board_width: 6, board_height: 6, timer: 150 },
+    { id: 7, name: 'Sketch', code: 'sketch', description: 'Create freehand drawings', board_width: 10, board_height: 10, timer: 0 }
   ]).returning('id');
 
   // Game history
