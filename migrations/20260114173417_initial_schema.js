@@ -2,16 +2,19 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = async function (knex) {
+export async function up(knex) {
   // USERS
   await knex.schema.createTable("users", (table) => {
     table.string("id").primary();
+    table.string("email").notNullable().unique();
     table.string("username").notNullable().unique();
     table.string("password").notNullable();
     table.string("full_name");
     table.string("role").defaultTo("user");
     table.string("avatar_url").defaultTo("default_avatar.png");
     table.string("bio");
+    table.boolean("is_active").defaultTo(true);
+    table.timestamp("last_login");
     table.timestamps(true, true);
   });
 
@@ -21,6 +24,7 @@ exports.up = async function (knex) {
     table.string("name").notNullable();
     table.string("code").unique().notNullable();
     table.string("description");
+    table.integer('board_size').defaultTo(4);
     table.boolean("is_active").defaultTo(true);
     table.timestamps(true, true);
   });
@@ -101,9 +105,9 @@ exports.up = async function (knex) {
     table.integer("achievement_id").references("id").inTable("achievements").onDelete("CASCADE");
     table.timestamp("unlocked_at").defaultTo(knex.fn.now());
   });
-};
+}
 
-exports.down = async function (knex) {
+export async function down(knex) {
   await knex.schema.dropTableIfExists("user_achievements");
   await knex.schema.dropTableIfExists("achievements");
   await knex.schema.dropTableIfExists("messages");
@@ -113,4 +117,4 @@ exports.down = async function (knex) {
   await knex.schema.dropTableIfExists("game_saves");
   await knex.schema.dropTableIfExists("games");
   await knex.schema.dropTableIfExists("users");
-};
+}

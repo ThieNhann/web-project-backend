@@ -1,7 +1,7 @@
-const bcrypt = require('bcryptjs');
-const { v4: uuidv4 } = require('uuid');
+import bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
 
-exports.seed = async function(knex) {
+export async function seed(knex) {
   // Delete old data
   await knex('user_achievements').del();
   await knex('achievements').del();
@@ -26,13 +26,13 @@ exports.seed = async function(knex) {
 
   // 7 games
   const games = await knex('games').insert([
-    { name: 'Caro 5', code: 'caro_5', description: 'Win with 5 pieces in a row' },
-    { name: 'Caro 4', code: 'caro_4', description: 'Win with 4 pieces in a row' },
-    { name: 'Tic-tac-toe', code: 'tictactoe', description: 'Classic 3x3 board game' },
-    { name: 'Snake', code: 'snake', description: 'Move and collect food' },
-    { name: 'Match 3', code: 'match_3', description: 'Arrange candies like Candy Crush' },
-    { name: 'Memory Card', code: 'memory_card', description: 'Find matching card pairs' },
-    { name: 'Sketch', code: 'sketch', description: 'Create freehand drawings' }
+    { id: 1, name: 'Caro 5', code: 'caro_5', description: 'Win with 5 pieces in a row' },
+    { id: 2, name: 'Caro 4', code: 'caro_4', description: 'Win with 4 pieces in a row' },
+    { id: 3, name: 'Tic-tac-toe', code: 'tictactoe', description: 'Classic 3x3 board game' },
+    { id: 4, name: 'Snake', code: 'snake', description: 'Move and collect food' },
+    { id: 5, name: 'Match 3', code: 'match_3', description: 'Arrange candies like Candy Crush' },
+    { id: 6, name: 'Memory Card', code: 'memory_card', description: 'Find matching card pairs' },
+    { id: 7, name: 'Sketch', code: 'sketch', description: 'Create freehand drawings' }
   ]).returning('id');
 
   // Game history

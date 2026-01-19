@@ -179,7 +179,7 @@ export const getUserInfo = async (req, res) => {
 
     const user = await db("users")
       .where({ id: userId })
-      .select('id', 'username', 'full_name', 'email', 'is_active', 'bio', 'avatar_url', 'is_verified')
+      .select('id', 'username', 'full_name', 'email', 'is_active', 'bio', 'avatar_url')
       .first();
 
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -194,7 +194,6 @@ export const getUserInfo = async (req, res) => {
       avatarUrl: user.avatar_url
         ? process.env.SERVER_URL + user.avatar_url
         : null,
-      isVerified: user.is_verified || false,
     };
     return res.status(200).json(userInfo);
   } catch (err) {

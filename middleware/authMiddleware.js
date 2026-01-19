@@ -16,7 +16,7 @@ const verifyToken = (req, res, next) => {
   const authHeader = req.header("Authorization");
   const token = authHeader && authHeader.split(" ")[1];
 
-  //console.log("[DEBUG] verifyToken called, token:", token);
+  // console.log("[DEBUG] verifyToken called, token:", token);
 
   if (!token) {
     return res.status(401).json({ success: false, message: "Token not found." });
