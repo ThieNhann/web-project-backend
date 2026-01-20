@@ -145,9 +145,8 @@ export const GameModel = {
         game_id: gameId,
         score,
         play_time: playTime,
-        created_at: new Date(),
       })
-      .returning("id");
+      .returning("*");
     return typeof result === "object" ? result.id : result;
   },
 
