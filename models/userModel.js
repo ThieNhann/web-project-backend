@@ -173,6 +173,29 @@ export const UserModel = {
       .orderBy("total_score", "desc")
       .limit(limit);
   },
+
+  async getUserRanking(userId, filter, gameId) {
+    const query = db("game_records")
+      .join("users", "game_records.user_id", "users.id")
+      .select("users.id", db.raw("SUM(game_records.score) as total_score"));
+
+    if (filter === "friends") {
+      query.join("friends", "friends.friend_id", "users.id").where("friends.user_id", userId);
+    }
+
+    if (gameId) {
+      query.where("game_records.game_id", gameId);
+    }
+
+    const ranking = await query
+      .andWhere("users.id", userId)
+      .groupBy("users.id")
+      .orderBy("total_score", "desc")
+      .first();
+
+    console.log("User ranking fetched from DB:", ranking);
+    return ranking;
+  },
 };
 
 export default UserModel;

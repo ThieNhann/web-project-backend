@@ -122,6 +122,21 @@ export const UserService = {
     console.log("Top players fetched for rankings:", topPlayers);
     return topPlayers;
   },
+
+  async getUserOwnRanking(userId, filter = "global", game = null) {
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const gameId = game ? await GameModel.getGameIdByCode(game) : null;
+    if (!gameId && game) {
+      throw new Error("Game not found");
+    }
+
+    const ranking = await UserModel.getUserRanking(userId, filter, gameId);
+    return ranking;
+  },
 };
 
 export default UserService;

@@ -5,6 +5,7 @@
 import db from "../config/db.js";
 import UserService from "../services/userService.js";
 import FriendService from "../services/friendService.js";
+import "dotenv/config";
 
 // ===== USER PROFILE =====
 const getUserProfile = async (req, res) => {
@@ -35,15 +36,34 @@ const getUsersRankings = async (req, res) => {
     const rankings = await UserService.getUserRankings(userId, filter, game);
     console.log("User rankings fetched:", rankings);
 
+    let userRankingIndex = rankings.findIndex((r) => r.id === parseInt(userId));
+    console.log("User ranking index:", userRankingIndex);
+
+    let userRanking = {};
+
+    if (userRankingIndex === -1) {
+      userRanking = await UserService.getUserOwnRanking(userId, filter, game, 1);
+      console.log("Separate user ranking fetched:", userRanking);
+    }
+
     return res.json({
       rankings: rankings.map((r, index) => ({
         rank: index + 1,
         userId: r.id,
         username: r.username,
         fullName: r.full_name,
-        avatarUrl: r.avatar_url,
+        avatarUrl: process.env.SERVER_URL + r.avatar_url,
         score: r.total_score,
       })),
+      userOwnRanking: {
+        rank: userRankingIndex !== -1 ? userRankingIndex + 1 : null,
+        score:
+          userRankingIndex !== -1
+            ? rankings[userRankingIndex]?.total_score || 0
+            : userRanking
+              ? userRanking.total_score
+              : 0,
+      },
     });
   } catch (error) {
     console.error("Error fetching user rankings:", error);
