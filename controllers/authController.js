@@ -1,4 +1,3 @@
-
 import db from "../config/db.js";
 import { hashPassword, verifyPassword } from "../utils/password.js";
 import { signToken, verifyToken } from "../utils/jwt.js";
@@ -40,7 +39,7 @@ export const signin = async (req, res) => {
     // Check if user exists
     const user = await db("users")
       .where({ email })
-      .select('id', 'username', 'full_name', 'email', 'password', 'is_active')
+      .select("id", "username", "full_name", "email", "password", "is_active")
       .first();
 
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
@@ -85,6 +84,48 @@ export const signin = async (req, res) => {
     //   two_factor_token: twoFactorToken,
     //   expires_at: new Date(Date.now() + Number(process.env.TWO_FA_EXPIRES_IN) || 15 * 60 * 1000),
     // });
+
+    const accessToken = signToken({ userId }, "15m");
+    const refreshToken = signToken({ userId, type: "refresh" }, "7d");
+
+    return res.status(200).json({
+      // status: "require2FA",
+      // message: "2FA code sent to email",
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+      // twoFactorToken,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const adminSignin = async (req, res) => {
+  // console.log("Signin endpoint hit");
+  const { email, password } = req.body;
+  try {
+    // Check if user exists
+    const user = await db("users")
+      .where({ email })
+      .where({ role: "admin" })
+      .select("id", "username", "full_name", "email", "password", "is_active")
+      .first();
+
+    if (!user) return res.status(401).json({ message: "Invalid credentials" });
+    if (!user.is_active) {
+      return res.status(403).json({ message: "Account is disabled" });
+    }
+
+    const valid = await verifyPassword(password, user.password);
+    if (!valid) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // Update last login
+    await db("users").where({ id: user.id }).update({ last_login: new Date() });
+
+    const userId = user.id;
 
     const accessToken = signToken({ userId }, "15m");
     const refreshToken = signToken({ userId, type: "refresh" }, "7d");
@@ -168,7 +209,6 @@ export const signin = async (req, res) => {
 //   }
 // };
 
-
 // GET USER INFO
 export const getUserInfo = async (req, res) => {
   const userId = req.user.userId || req.params?.userId || req.query?.userId || req.body?.userId;
@@ -179,7 +219,7 @@ export const getUserInfo = async (req, res) => {
 
     const user = await db("users")
       .where({ id: userId })
-      .select('id', 'username', 'full_name', 'email', 'is_active', 'bio', 'avatar_url')
+      .select("id", "username", "full_name", "email", "is_active", "bio", "avatar_url")
       .first();
 
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -191,9 +231,7 @@ export const getUserInfo = async (req, res) => {
       fullName: user.full_name || null,
       email: user.email,
       bio: user.bio || null,
-      avatarUrl: user.avatar_url
-        ? process.env.SERVER_URL + user.avatar_url
-        : null,
+      avatarUrl: user.avatar_url ? process.env.SERVER_URL + user.avatar_url : null,
     };
     return res.status(200).json(userInfo);
   } catch (err) {

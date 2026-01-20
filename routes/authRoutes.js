@@ -29,7 +29,7 @@ router.post(
     body("password", "Password must have at least 6 characters.").isLength({ min: 6 }),
   ],
   validateRequest,
-  signup
+  signup,
 );
 router.post("/login", signin);
 router.get("/me", verifyToken, getMe);
@@ -51,7 +51,7 @@ router.post(
     body("password").isString().isLength({ min: 8 }),
   ],
   validateRequest,
-  signup
+  signup,
 );
 
 // POST /api/auth/signin
@@ -59,10 +59,20 @@ router.post(
   "/signin",
   [
     body("email").isString().isLength({ min: 3 }).trim(),
-    body("password").isString().isLength({ min: 8 }),
+    body("password").isString().isLength({ min: 6 }),
   ],
   validateRequest,
-  signin
+  signin,
+);
+
+router.post(
+  "/admin/signin",
+  [
+    body("email").isString().isLength({ min: 3 }).trim(),
+    body("password").isString().isLength({ min: 6 }),
+  ],
+  validateRequest,
+  signin,
 );
 
 // // POST /api/auth/validate/2fa
@@ -80,7 +90,7 @@ router.post(
   "/validate/refresh-token",
   [body("refreshToken").optional().isString()],
   validateRequest,
-  requestNewAccessToken
+  requestNewAccessToken,
 );
 
 // GET /api/auth/validate/access-token
@@ -94,7 +104,7 @@ router.get(
   ],
   verifyToken,
   validateRequest,
-  getUserInfo
+  getUserInfo,
 );
 
 export default router;
