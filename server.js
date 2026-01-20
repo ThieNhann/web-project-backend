@@ -12,6 +12,8 @@ import gameRoutes from "./routes/gameRoutes.js"; // Game routes
 import searchRoutes from "./routes/searchRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
+import achievementRoutes from "./routes/achievementRoutes.js";
+import userStatsRoutes from "./routes/userStatsRoutes.js";
 import { verifyApiKey } from "./middleware/apiKeyMiddleware.js";
 import { specs } from "./config/swagger.js";
 
@@ -37,6 +39,8 @@ app.use("/api/search", searchRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/achievements", achievementRoutes);
+app.use("/api/user-stats", userStatsRoutes);
 
 app.get("/", (req, res) => {
   res.send("chạy ok");

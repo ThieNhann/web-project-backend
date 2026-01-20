@@ -5,6 +5,7 @@ export async function seed(knex) {
   // Delete old data
   await knex('user_achievements').del();
   await knex('achievements').del();
+  await knex('user_stats').del();
   await knex('messages').del();
   await knex('reviews').del();
   await knex('game_records').del();
@@ -48,14 +49,41 @@ export async function seed(knex) {
 
   // Achievements
   const achievements = await knex('achievements').insert([
-    { id: 1, name: 'First Win', description: 'Win your first game', icon_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzWbJMKCp6HocUPQw8yfOJtcF4Im6nNlS1Mw&s' },
-    { id: 2, name: 'High Scorer', description: 'Score over 2000 points in a game', icon_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzWbJMKCp6HocUPQw8yfOJtcF4Im6nNlS1Mw&' }
+    { id: 1, name: 'First Win', description: 'Win your first game', icon_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzWbJMKCp6HocUPQw8yfOJtcF4Im6nNlS1Mw&s', condition_type: 'win_count', condition_value: JSON.stringify({ threshold: 1 }) },
+    { id: 2, name: 'Five Time Winner', description: 'Win 5 matches', icon_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzWbJMKCp6HocUPQw8yfOJtcF4Im6nNlS1Mw&', condition_type: 'win_count', condition_value: JSON.stringify({ threshold: 5 }) },
+    { id: 3, name: 'Regular Player', description: 'Play 5 matches', icon_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzWbJMKCp6HocUPQw8yfOJtcF4Im6nNlS1Mw&', condition_type: 'match_count', condition_value: JSON.stringify({ threshold: 5 }) },
+    { id: 4, name: 'Newbie', description: 'First Login', icon_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzWbJMKCp6HocUPQw8yfOJtcF4Im6nNlS1Mw&', condition_type: 'login_count', condition_value: JSON.stringify({ threshold: 1 }) }
   ]).returning('id');
+
+  // User Stats
+  await knex('user_stats').insert([
+    { user_id: users[0].id, login_count: 100, win_count: 50, match_count: 75, max_score: 2500 },
+    { user_id: users[1].id, login_count: 25, win_count: 10, match_count: 20, max_score: 1800 },
+    { user_id: users[2].id, login_count: 30, win_count: 15, match_count: 25, max_score: 2200 },
+    { user_id: users[3].id, login_count: 5, win_count: 2, match_count: 5, max_score: 1200 },
+    { user_id: users[4].id, login_count: 10, win_count: 5, match_count: 10, max_score: 1500 }
+  ]);
 
   // User Achievements
   await knex('user_achievements').insert([
-    { id: 1, user_id: users[1].id, achievement_id: achievements[0].id, unlocked_at: new Date() },
-    { id: 2, user_id: users[0].id, achievement_id: achievements[1].id, unlocked_at: new Date() }
+    // First Win
+    { user_id: users[0].id, achievement_id: 1, unlocked_at: new Date() },
+    { user_id: users[1].id, achievement_id: 1, unlocked_at: new Date() },
+    { user_id: users[2].id, achievement_id: 1, unlocked_at: new Date() },
+    // Five Time Winner (win_count >= 5)
+    { user_id: users[0].id, achievement_id: 2, unlocked_at: new Date() },
+    { user_id: users[2].id, achievement_id: 2, unlocked_at: new Date() },
+    // Regular Player (match_count >= 5)
+    { user_id: users[0].id, achievement_id: 3, unlocked_at: new Date() },
+    { user_id: users[1].id, achievement_id: 3, unlocked_at: new Date() },
+    { user_id: users[2].id, achievement_id: 3, unlocked_at: new Date() },
+    { user_id: users[4].id, achievement_id: 3, unlocked_at: new Date() },
+    // Newbie (login_count >= 1)
+    { user_id: users[0].id, achievement_id: 4, unlocked_at: new Date() },
+    { user_id: users[1].id, achievement_id: 4, unlocked_at: new Date() },
+    { user_id: users[2].id, achievement_id: 4, unlocked_at: new Date() },
+    { user_id: users[3].id, achievement_id: 4, unlocked_at: new Date() },
+    { user_id: users[4].id, achievement_id: 4, unlocked_at: new Date() }
   ]);
 
   // User Rankings
