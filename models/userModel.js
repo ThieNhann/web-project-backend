@@ -8,8 +8,8 @@ import db from "../config/db.js";
 export const UserModel = {
   // ===== CREATE =====
   async create(userData) {
-    const [id] = await db("users").insert(userData).returning("id");
-    return this.findById(id);
+    await db("users").insert(userData);
+    return this.findById(userData.id);
   },
 
   // ===== READ =====

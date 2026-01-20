@@ -125,7 +125,7 @@ export const GameModel = {
 
   // ===== GAME RECORDS =====
   async createGameRecord(userId, gameId, score, playTime) {
-    const [id] = await db("game_records")
+    const [result] = await db("game_records")
       .insert({
         user_id: userId,
         game_id: gameId,
@@ -134,7 +134,7 @@ export const GameModel = {
         created_at: new Date(),
       })
       .returning("id");
-    return id;
+    return typeof result === 'object' ? result.id : result;
   },
 
   async getGameRecords(gameId, limit = 50) {

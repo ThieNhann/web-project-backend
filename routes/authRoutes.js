@@ -45,12 +45,14 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             required:
+ *               - username
+ *               - full_name
  *               - email
  *               - password
  *             properties:
- *               firstName:
+ *               username:
  *                 type: string
- *               lastName:
+ *               full_name:
  *                 type: string
  *               email:
  *                 type: string
@@ -212,6 +214,9 @@ router.post(
   "/register",
   [
     body("username", "Username must not be empty.").not().isEmpty(),
+    body("email", "Email must be valid.").isEmail(),
+    body("email", "Email must not be empty.").not().isEmpty(),
+    body("full_name", "Full name must not be empty.").not().isEmpty(),
     body("password", "Password must have at least 6 characters.").isLength({ min: 6 }),
   ],
   validateRequest,
@@ -231,10 +236,10 @@ router.get("/health", (req, res) => {
 router.post(
   "/signup",
   [
-    body("firstName").optional().isString().isLength({ max: 100 }),
-    body("lastName").optional().isString().isLength({ max: 100 }),
-    body("email").isEmail().normalizeEmail(),
-    body("password").isString().isLength({ min: 8 }),
+    body("username", "Username must not be empty.").not().isEmpty(),
+    body("email", "Email must be valid.").isEmail(),
+    body("email", "Email must not be empty.").not().isEmpty(),
+    body("password", "Password must have at least 8 characters.").isString().isLength({ min: 8 }),
   ],
   validateRequest,
   signup,

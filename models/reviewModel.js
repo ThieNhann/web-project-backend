@@ -7,7 +7,7 @@ import db from "../config/db.js";
 export const ReviewModel = {
   // ===== CREATE =====
   async createReview(userId, gameId, rating, comment) {
-    const [id] = await db("reviews")
+    const [result] = await db("reviews")
       .insert({
         user_id: userId,
         game_id: gameId,
@@ -16,7 +16,8 @@ export const ReviewModel = {
         created_at: new Date(),
       })
       .returning("id");
-    return this.getReviewById(id);
+    const reviewId = typeof result === 'object' ? result.id : result;
+    return this.getReviewById(reviewId);
   },
 
   // ===== READ =====

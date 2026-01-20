@@ -7,7 +7,7 @@ import db from "../config/db.js";
 export const MessageModel = {
   // ===== CREATE =====
   async sendMessage(senderId, recipientId, content) {
-    const [id] = await db("messages")
+    const [result] = await db("messages")
       .insert({
         sender_id: senderId,
         recipient_id: recipientId,
@@ -16,7 +16,8 @@ export const MessageModel = {
         created_at: new Date(),
       })
       .returning("id");
-    return this.getMessageById(id);
+    const messageId = typeof result === 'object' ? result.id : result;
+    return this.getMessageById(messageId);
   },
 
   // ===== READ =====
