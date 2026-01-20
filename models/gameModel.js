@@ -6,9 +6,24 @@ import db from "../config/db.js";
 
 export const GameModel = {
   // ===== READ =====
+
+  async getGameIdByCode(code) {
+    const game = await db("games").where({ code }).first();
+    return game ? game.id : null;
+  },
+
   async findAll() {
     return await db("games")
-      .select("id", "name", "code", "description", "board_width", "board_height", "timer", "is_active")
+      .select(
+        "id",
+        "name",
+        "code",
+        "description",
+        "board_width",
+        "board_height",
+        "timer",
+        "is_active",
+      )
       .orderBy("id", "asc");
   },
 
@@ -45,15 +60,11 @@ export const GameModel = {
     const updateData = {};
     if (board_width !== undefined) updateData.board_width = board_width;
     if (board_height !== undefined) updateData.board_height = board_height;
-    return await db("games")
-      .where({ id })
-      .update(updateData);
+    return await db("games").where({ id }).update(updateData);
   },
 
   async updateTimer(id, timer) {
-    return await db("games")
-      .where({ id })
-      .update({ timer });
+    return await db("games").where({ id }).update({ timer });
   },
 
   // ===== STATISTICS =====
@@ -75,7 +86,10 @@ export const GameModel = {
         "games.name",
         "games.code",
         db.raw("COUNT(game_records.id) as count"),
-        db.raw("ROUND(COUNT(game_records.id) * 100.0 / (SELECT COUNT(*) FROM game_records WHERE created_at > ?), 2) as percentage", [since])
+        db.raw(
+          "ROUND(COUNT(game_records.id) * 100.0 / (SELECT COUNT(*) FROM game_records WHERE created_at > ?), 2) as percentage",
+          [since],
+        ),
       )
       .groupBy("games.id", "games.name", "games.code")
       .orderBy("count", "desc");
@@ -109,7 +123,7 @@ export const GameModel = {
         "game_saves.data",
         "game_saves.saved_at",
         "games.name as game_name",
-        "games.code as game_code"
+        "games.code as game_code",
       );
 
     if (gameId) {
@@ -134,18 +148,14 @@ export const GameModel = {
         created_at: new Date(),
       })
       .returning("id");
-    return typeof result === 'object' ? result.id : result;
+    return typeof result === "object" ? result.id : result;
   },
 
   async getGameRecords(gameId, limit = 50) {
     return await db("game_records")
       .where({ game_id: gameId })
       .join("users", "game_records.user_id", "users.id")
-      .select(
-        "game_records.*",
-        "users.username",
-        "users.avatar_url"
-      )
+      .select("game_records.*", "users.username", "users.avatar_url")
       .orderBy("game_records.created_at", "desc")
       .limit(limit);
   },
@@ -161,11 +171,7 @@ export const GameModel = {
     return await db("game_records")
       .where({ game_id: gameId })
       .join("users", "game_records.user_id", "users.id")
-      .select(
-        "game_records.*",
-        "users.username",
-        "users.avatar_url"
-      )
+      .select("game_records.*", "users.username", "users.avatar_url")
       .orderBy("game_records.score", "desc")
       .limit(limit);
   },
@@ -175,7 +181,7 @@ export const GameModel = {
       .select(
         db.raw("EXTRACT(YEAR FROM created_at) as year"),
         db.raw("EXTRACT(MONTH FROM created_at) as month"),
-        db.raw("COUNT(DISTINCT user_id) as player_count")
+        db.raw("COUNT(DISTINCT user_id) as player_count"),
       )
       .groupBy(db.raw("EXTRACT(YEAR FROM created_at)"), db.raw("EXTRACT(MONTH FROM created_at)"))
       .orderBy(db.raw("year"), db.raw("month"));

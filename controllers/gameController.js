@@ -100,6 +100,7 @@ export const getGameBoardSize = async (req, res) => {
 };
 
 export const updateGameBoardSize = async (req, res) => {
+  console.log("Update Game Board Size called");
   try {
     const { id: gameId } = req.params;
     const { board_width, board_height } = req.body;

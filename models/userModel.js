@@ -27,7 +27,17 @@ export const UserModel = {
 
   async findAll(limit = 50, offset = 0) {
     return await db("users")
-      .select("id", "username", "full_name", "email", "role", "avatar_url", "is_active", "last_login", "created_at")
+      .select(
+        "id",
+        "username",
+        "full_name",
+        "email",
+        "role",
+        "avatar_url",
+        "is_active",
+        "last_login",
+        "created_at",
+      )
       .limit(limit)
       .offset(offset)
       .orderBy("created_at", "desc");
@@ -49,9 +59,7 @@ export const UserModel = {
   },
 
   async updateLastLogin(id) {
-    return await db("users")
-      .where({ id })
-      .update({ last_login: new Date() });
+    return await db("users").where({ id }).update({ last_login: new Date() });
   },
 
   async updateProfile(id, profileData) {
@@ -80,10 +88,7 @@ export const UserModel = {
 
   async getActiveUsers(hours = 24) {
     const since = new Date(Date.now() - hours * 60 * 60 * 1000);
-    return await db("users")
-      .where("last_login", ">", since)
-      .count("id as count")
-      .first();
+    return await db("users").where("last_login", ">", since).count("id as count").first();
   },
 
   async get24HourActivePlayers() {
@@ -108,27 +113,63 @@ export const UserModel = {
 
   async getGameHistory(userId, gameId = null, limit = 10) {
     let query = db("game_records").where({ user_id: userId });
-    
+
     if (gameId) {
       query = query.where({ game_id: gameId });
     }
-    
-    return await query
-      .orderBy("created_at", "desc")
-      .limit(limit);
+
+    return await query.orderBy("created_at", "desc").limit(limit);
   },
 
-  async getTopPlayers(limit = 10) {
+  async getTopPlayers(userId, filter = "global", gameId, limit = 10) {
+    console.log(`Getting top players with filter: ${filter}, gameId: ${gameId}, limit: ${limit}`);
+
+    if (filter === "global") {
+      return await db("game_records")
+        .join("users", "game_records.user_id", "users.id")
+        .select(
+          "users.id",
+          "users.username",
+          "users.full_name",
+          "users.avatar_url",
+          db.raw("SUM(game_records.score) as total_score"),
+        )
+        .where({ "game_records.game_id": gameId })
+        .groupBy("users.id", "users.username", "users.full_name", "users.avatar_url")
+        .orderBy("total_score", "desc")
+        .limit(limit);
+    }
+
+    if (filter === "friends") {
+      // Assuming there's a friends table with user_id and friend_id
+      return await db("game_records")
+        .join("users", "game_records.user_id", "users.id")
+        .join("friends", "friends.friend_id", "users.id")
+        .select(
+          "users.id",
+          "users.username",
+          "users.full_name",
+          "users.avatar_url",
+          db.raw("SUM(game_records.score) as total_score"),
+        )
+        .where({ "friends.user_id": userId, "game_records.game_id": gameId })
+        .groupBy("users.id", "users.username", "users.full_name", "users.avatar_url")
+        .orderBy("total_score", "desc")
+        .limit(limit);
+    }
+
+    // Default to only-me
     return await db("game_records")
       .join("users", "game_records.user_id", "users.id")
       .select(
         "users.id",
         "users.username",
+        "users.full_name",
         "users.avatar_url",
         db.raw("SUM(game_records.score) as total_score"),
-        db.raw("COUNT(game_records.id) as games_played")
       )
-      .groupBy("users.id", "users.username", "users.avatar_url")
+      .where({ "game_records.user_id": userId, "game_records.game_id": gameId })
+      .groupBy("users.id", "users.username", "users.full_name", "users.avatar_url")
       .orderBy("total_score", "desc")
       .limit(limit);
   },

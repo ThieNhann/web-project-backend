@@ -73,7 +73,7 @@ export const AuthService = {
     await UserModel.updateLastLogin(user.id);
 
     // Generate tokens
-    const accessToken = signToken({ userId: user.id }, "15m");
+    const accessToken = signToken({ userId: user.id }, "1m");
     const refreshToken = signToken({ userId: user.id, type: "refresh" }, "7d");
 
     return {
@@ -125,6 +125,15 @@ export const AuthService = {
       bio: updated.bio,
       avatarUrl: updated.avatar_url,
     };
+  },
+
+  async getIsAdmin(userId) {
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    return user.role === "admin";
   },
 };
 

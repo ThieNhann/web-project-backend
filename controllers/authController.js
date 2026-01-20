@@ -1,5 +1,7 @@
+import { referrerPolicy } from "helmet";
 import AuthService from "../services/authService.js";
 import { verifyToken } from "../utils/jwt.js";
+import { signToken } from "../utils/jwt.js";
 
 // ĐĂNG KÝ
 export const signup = async (req, res) => {
@@ -7,7 +9,7 @@ export const signup = async (req, res) => {
     const { username, full_name, email, password } = req.body;
 
     const user = await AuthService.signup(email, password, username, full_name);
-    
+
     return res.status(201).json({ user });
   } catch (err) {
     console.error(err);
@@ -22,7 +24,7 @@ export const signin = async (req, res) => {
     const { email, password } = req.body;
 
     const result = await AuthService.signin(email, password);
-    
+
     return res.status(200).json({
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
@@ -173,13 +175,21 @@ export const requestNewAccessToken = async (req, res) => {
       return res.status(400).json({ message: "Invalid token payload" });
     }
 
+    const isAdmin = await AuthService.getIsAdmin(userId);
+
     // Get new access token from service
-    const { accessToken: newAccessToken } = await AuthService.getUserInfo(userId);
-    const newRefreshToken = refreshToken;
+    const userInformation = await AuthService.getUserInfo(userId);
+    // console.log("User information retrieved for new access token:", userInformation);
+
+    const newAccessToken = signToken({ userId, username: userInformation.username }, "1m");
+
+    // console.log("Generated new access token for userId:", newAccessToken);
+    // console.log("Is user admin?:", isAdmin);
 
     return res.status(200).json({
       accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
+      refreshToken: refreshToken,
+      isAdmin,
     });
   } catch (err) {
     console.error(err);

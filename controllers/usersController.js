@@ -33,8 +33,18 @@ const getUsersRankings = async (req, res) => {
     const game = req.query.game;
 
     const rankings = await UserService.getUserRankings(userId, filter, game);
+    console.log("User rankings fetched:", rankings);
 
-    return res.json({ rankings });
+    return res.json({
+      rankings: rankings.map((r, index) => ({
+        rank: index + 1,
+        userId: r.id,
+        username: r.username,
+        fullName: r.full_name,
+        avatarUrl: r.avatar_url,
+        score: r.total_score,
+      })),
+    });
   } catch (error) {
     console.error("Error fetching user rankings:", error);
     return res.status(500).json({ error: error.message });

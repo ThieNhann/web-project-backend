@@ -26,7 +26,7 @@ export const UserService = {
     if (!query || query.trim().length === 0) {
       return [];
     }
-    
+
     const offset = (page - 1) * limit;
     return await UserModel.searchUsers(query, limit, offset);
   },
@@ -110,8 +110,16 @@ export const UserService = {
       throw new Error("User not found");
     }
 
+    const gameId = game ? await GameModel.getGameIdByCode(game) : null;
+    if (!gameId && game) {
+      throw new Error("Game not found");
+    }
+
+    // console.log(`Fetching rankings for user ${userId} with filter ${filter} and game ${game}`);
+
     // Logic for rankings based on filter
-    const topPlayers = await UserModel.getTopPlayers(limit);
+    const topPlayers = await UserModel.getTopPlayers(userId, filter, gameId, limit);
+    console.log("Top players fetched for rankings:", topPlayers);
     return topPlayers;
   },
 };

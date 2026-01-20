@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
 
 function validateRequest(req, res, next) {
-  //console.log("Validating request:", req.body, req.query, req.params);
+  console.log("Validating request:", req.body, req.query, req.params);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     //console.log("Validation errors:", errors.array());
