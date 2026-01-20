@@ -85,13 +85,18 @@ const deactivateGameMode = async (req, res) => {
 const updateBoardSize = async (req, res) => {
   try {
     const gameId = Number(req.params.gameId) || 0;
-    const { boardSize } = req.body;
-    const board_width = parseInt(boardSize.width);
-    const board_height = parseInt(boardSize.height);
+    const { board_width, board_height } = req.body;
+
+    if (board_width === undefined && board_height === undefined) {
+      return res.status(400).json({ error: "board_width or board_height is required" });
+    }
 
     const updated = await db("games")
       .where("id", gameId)
-      .update({ board_width: board_width, board_height: board_height });
+      .update({
+        ...(board_width !== undefined && { board_width: parseInt(board_width) }),
+        ...(board_height !== undefined && { board_height: parseInt(board_height) }),
+      });
 
     if (!updated) {
       return res.status(404).json({ error: "Game not found" });

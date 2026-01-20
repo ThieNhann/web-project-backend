@@ -14,8 +14,9 @@ import "dotenv/config";
 const verifyToken = (req, res, next) => {
   // lấy token từ header "Authorization: Bearer <token>"
   const authHeader = req.header("Authorization");
+  console.log("authHeader:", authHeader);
   const token = authHeader && authHeader.split(" ")[1];
-
+  console.log(token);
   // console.log("[DEBUG] verifyToken called, token:", token);
 
   if (!token) {
@@ -25,7 +26,7 @@ const verifyToken = (req, res, next) => {
   try {
     // decode + verify
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
+    console.log("decoded token:", decoded);
     // mount thông tin user vào req
     req.user = decoded;
     next();

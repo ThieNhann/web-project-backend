@@ -1,145 +1,54 @@
-import db from "../config/db.js";
-import { hashPassword, verifyPassword } from "../utils/password.js";
-import { signToken, verifyToken } from "../utils/jwt.js";
-import crypto from "crypto";
+import AuthService from "../services/authService.js";
+import { verifyToken } from "../utils/jwt.js";
 
 // ĐĂNG KÝ
 export const signup = async (req, res) => {
-  const { username, full_name, email, password } = req.body;
-
-  if (!email || !password) return res.status(400).json({ message: "Missing required fields" });
-
   try {
-    const existingUser = await db("users").where({ email }).first();
-    if (existingUser) return res.status(409).json({ message: "Username or email already taken" });
+    const { username, full_name, email, password } = req.body;
 
-    const passwordHash = await hashPassword(password);
-    const userId = crypto.randomUUID();
-
-    await db("users").insert({
-      id: userId,
-      email,
-      password: passwordHash,
-      username,
-      full_name: full_name || null,
-    });
-
-    return res.status(201).json({ user: { userId, email, username, full_name } });
+    const user = await AuthService.signup(email, password, username, full_name);
+    
+    return res.status(201).json({ user });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: "Internal server error" });
+    const status = err.message.includes("Email already") ? 409 : 400;
+    return res.status(status).json({ message: err.message });
   }
 };
 
 // ĐĂNG NHẬP
 export const signin = async (req, res) => {
-  // console.log("Signin endpoint hit");
-  const { email, password } = req.body;
   try {
-    // Check if user exists
-    const user = await db("users")
-      .where({ email })
-      .select("id", "username", "full_name", "email", "password", "is_active")
-      .first();
+    const { email, password } = req.body;
 
-    if (!user) return res.status(401).json({ message: "Invalid credentials" });
-    if (!user.is_active) {
-      return res.status(403).json({ message: "Account is disabled" });
-    }
-
-    const valid = await verifyPassword(password, user.password);
-    if (!valid) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
-
-    // Update last login
-    await db("users").where({ id: user.id }).update({ last_login: new Date() });
-
-    const userId = user.id;
-
-    // Generate code and twoFactorToken
-    // Insert code and twoFactorToken into database with expiration
-    // const code = Math.floor(100000 + Math.random() * 899999).toString();
-    // const twoFactorToken = signToken({ userId });
-
-    // Check if a 2FA code already exists for this user
-    // const existing2fa = await db('two_factor_auth').where({ user_id: userId }).first();
-    // console.log("Existing 2FA record:", existing2fa);
-    // if (existing2fa) {
-    //   if (existing2fa.expires_at && new Date(existing2fa.expires_at) < new Date()) {
-    //     await db('two_factor_auth').where({ user_id: userId }).delete();
-    //   } else {
-    //     return res.status(200).json({
-    //       status: "require2FA",
-    //       message: "2FA code already sent. Please check your email.",
-    //     });
-    //   }
-    // }
-
-    // Send email with code
-    // await sendMail(user.email, code);
-    // await db('two_factor_auth').insert({
-    //   user_id: userId,
-    //   code,
-    //   two_factor_token: twoFactorToken,
-    //   expires_at: new Date(Date.now() + Number(process.env.TWO_FA_EXPIRES_IN) || 15 * 60 * 1000),
-    // });
-
-    const accessToken = signToken({ userId }, "15m");
-    const refreshToken = signToken({ userId, type: "refresh" }, "7d");
-
+    const result = await AuthService.signin(email, password);
+    
     return res.status(200).json({
-      // status: "require2FA",
-      // message: "2FA code sent to email",
-      accessToken: accessToken,
-      refreshToken: refreshToken,
-      // twoFactorToken,
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
     });
   } catch (err) {
-    console.log(err);
-    return res.status(500).json({ message: "Internal server error" });
+    console.error(err);
+    const status = err.message.includes("disabled") ? 403 : 401;
+    return res.status(status).json({ message: err.message });
   }
 };
 
-export const adminSignin = async (req, res) => {
-  // console.log("Signin endpoint hit");
-  const { email, password } = req.body;
+// GET USER INFO
+export const getUserInfo = async (req, res) => {
   try {
-    // Check if user exists
-    const user = await db("users")
-      .where({ email })
-      .where({ role: "admin" })
-      .select("id", "username", "full_name", "email", "password", "is_active")
-      .first();
+    const userId = req.user?.userId || req.params?.userId;
 
-    if (!user) return res.status(401).json({ message: "Invalid credentials" });
-    if (!user.is_active) {
-      return res.status(403).json({ message: "Account is disabled" });
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "Missing userId" });
     }
 
-    const valid = await verifyPassword(password, user.password);
-    if (!valid) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+    const userInfo = await AuthService.getUserInfo(userId);
 
-    // Update last login
-    await db("users").where({ id: user.id }).update({ last_login: new Date() });
-
-    const userId = user.id;
-
-    const accessToken = signToken({ userId }, "15m");
-    const refreshToken = signToken({ userId, type: "refresh" }, "7d");
-
-    return res.status(200).json({
-      // status: "require2FA",
-      // message: "2FA code sent to email",
-      accessToken: accessToken,
-      refreshToken: refreshToken,
-      // twoFactorToken,
-    });
+    return res.status(200).json(userInfo);
   } catch (err) {
-    console.log(err);
-    return res.status(500).json({ message: "Internal server error" });
+    console.error(err);
+    return res.status(404).json({ success: false, message: err.message });
   }
 };
 
@@ -210,41 +119,43 @@ export const adminSignin = async (req, res) => {
 // };
 
 // GET USER INFO
-export const getUserInfo = async (req, res) => {
-  const userId = req.user.userId || req.params?.userId || req.query?.userId || req.body?.userId;
+// export const getUserInfo = async (req, res) => {
+//   const userId = req.user.userId || req.params?.userId || req.query?.userId || req.body?.userId;
 
-  console.log("[DEBUG]: userId =", userId);
-  try {
-    if (!userId) return res.status(400).json({ message: "Missing userId" });
+//   console.log("[DEBUG]: userId =", userId);
+//   try {
+//     if (!userId) return res.status(400).json({ message: "Missing userId" });
 
-    const user = await db("users")
-      .where({ id: userId })
-      .select("id", "username", "full_name", "email", "is_active", "bio", "avatar_url")
-      .first();
+//     const user = await db("users")
+//       .where({ id: userId })
+//       .select("id", "username", "full_name", "email", "is_active", "bio", "avatar_url")
+//       .first();
 
-    if (!user) return res.status(404).json({ message: "User not found" });
-    if (!user.is_active) return res.status(403).json({ message: "Account is disabled" });
+//     if (!user) return res.status(404).json({ message: "User not found" });
+//     if (!user.is_active) return res.status(403).json({ message: "Account is disabled" });
 
-    const userInfo = {
-      userId: user.id,
-      username: user.username || null,
-      fullName: user.full_name || null,
-      email: user.email,
-      bio: user.bio || null,
-      avatarUrl: user.avatar_url ? process.env.SERVER_URL + user.avatar_url : null,
-    };
-    return res.status(200).json(userInfo);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
+//     const userInfo = {
+//       userId: user.id,
+//       username: user.username || null,
+//       fullName: user.full_name || null,
+//       email: user.email,
+//       bio: user.bio || null,
+//       avatarUrl: user.avatar_url ? process.env.SERVER_URL + user.avatar_url : null,
+//     };
+//     return res.status(200).json(userInfo);
+//   } catch (err) {
+//     console.error(err);
+//     return res.status(500).json({ message: "Internal server error" });
+//   }
+// };
 
 // REQUEST NEW ACCESS TOKEN
 export const requestNewAccessToken = async (req, res) => {
   try {
     const refreshToken = req.body.refreshToken || req.headers["authorization"]?.split(" ")[1];
-    if (!refreshToken) return res.status(400).json({ message: "Missing refresh token" });
+    if (!refreshToken) {
+      return res.status(400).json({ message: "Missing refresh token" });
+    }
 
     let payload;
     try {
@@ -258,12 +169,18 @@ export const requestNewAccessToken = async (req, res) => {
     }
 
     const userId = payload.userId || payload.user_id;
-    if (!userId) return res.status(400).json({ message: "Invalid token payload" });
+    if (!userId) {
+      return res.status(400).json({ message: "Invalid token payload" });
+    }
 
-    // Gen new accessToken
-    const accessToken = signToken({ userId, username: payload.username }, "15m");
+    // Get new access token from service
+    const { accessToken: newAccessToken } = await AuthService.getUserInfo(userId);
+    const newRefreshToken = refreshToken;
 
-    return res.status(200).json({ accessToken, refreshToken });
+    return res.status(200).json({
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+    });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Internal server error" });
@@ -309,12 +226,11 @@ export const validateAccessToken = async (req, res) => {
 // GET ME
 export const getMe = async (req, res) => {
   try {
-    // req.user.id được authMiddleware gắn lên req
-    const user = await db("users").where({ id: req.user.id }).first();
+    const userId = req.user.id;
 
+    const user = await AuthService.getUserInfo(userId);
     if (!user) return res.status(404).json({ message: "Non-existent user." });
 
-    // Loại bỏ password!!!
     const { password, ...userInfo } = user;
     res.json({ success: true, user: userInfo });
   } catch (error) {
@@ -325,14 +241,18 @@ export const getMe = async (req, res) => {
 // UPDATE PROFILE
 export const updateProfile = async (req, res) => {
   const { full_name, bio, avatar_url } = req.body;
+  const userId = req.user.id;
   try {
-    const [updatedUser] = await db("users")
-      .where({ id: req.user.id })
-      .update({ full_name, bio, avatar_url, updated_at: new Date() })
-      .returning(["id", "username", "full_name", "bio", "avatar_url"]);
+    const profileData = {
+      fullName: full_name,
+      bio: bio,
+      avatarUrl: avatar_url,
+    };
+
+    const [updatedUser] = await AuthService.updateProfile(userId, profileData);
 
     res.json({ success: true, message: "Updated successfully.", user: updatedUser });
   } catch (error) {
-    res.status(500).json({ message: "Error updating profile." });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };

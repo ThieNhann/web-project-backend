@@ -1,35 +1,36 @@
-import db from "../config/db.js";
-import "dotenv/config";
+/**
+ * Search Controller - Handle HTTP requests for search operations
+ */
+
+import UserService from "../services/userService.js";
 
 export async function searchUser(req, res) {
-  // console.log("[DEBUG] searchUser called");
   try {
     const searchQuery = req.query.query?.trim() || "";
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
 
-    const offset = (page - 1) * limit;
+    if (!searchQuery) {
+      return res.status(400).json({
+        success: false,
+        message: "Search query is required",
+      });
+    }
 
-    const results = await db("users")
-      .select("id", "username", "full_name", "bio", "avatar_url")
-      .where("username", "ilike", `%${searchQuery}%`)
-      .where("is_active", true)
-      .limit(limit)
-      .offset(offset);
+    const results = await UserService.searchUsers(searchQuery);
 
-    // console.log("[DEBUG] Search results:", results);
-
-    res.json({
+    return res.json({
+      success: true,
       searchResults: results.map((user) => ({
         userId: user.id,
         username: user.username,
-        fullName: user.full_name,
-        bio: user.bio,
-        avatarUrl: process.env.SERVER_URL + user.avatar_url,
+        email: user.email,
+        avatarUrl: user.avatar_url,
       })),
     });
   } catch (error) {
     console.error("Error in searchUser:", error);
-    res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+    });
   }
 }

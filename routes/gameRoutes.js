@@ -18,7 +18,211 @@ import { verifyToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// GET /api/games - Lấy danh sách game
+/**
+ * @swagger
+ * /api/games:
+ *   get:
+ *     summary: Get all available games
+ *     tags: [Games]
+ *     responses:
+ *       200:
+ *         description: List of games
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GameListResponse'
+ */
+
+/**
+ * @swagger
+ * /api/games/save:
+ *   post:
+ *     summary: Save current game progress
+ *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - game_id
+ *               - data
+ *             properties:
+ *               game_id:
+ *                 type: integer
+ *               data:
+ *                 type: object
+ *     responses:
+ *       201:
+ *         description: Game saved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: Missing required fields
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponseWithSuccess'
+ */
+
+/**
+ * @swagger
+ * /api/games/load:
+ *   get:
+ *     summary: Load saved game
+ *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: game_id
+ *         schema:
+ *           type: integer
+ *         description: Game ID to load saves for (optional - if not provided, returns all saves)
+ *     responses:
+ *       200:
+ *         description: Saved game data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 count:
+ *                   type: integer
+ *                 data:
+ *                   type: object
+ *                   nullable: true
+ */
+
+/**
+ * @swagger
+ * /api/games/{id}/board-size:
+ *   get:
+ *     summary: Get game board size
+ *     tags: [Games]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Board size information
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/BoardSizeResponse'
+ *   put:
+ *     summary: Update game board size
+ *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - board_width
+ *               - board_height
+ *             properties:
+ *               board_width:
+ *                 type: integer
+ *               board_height:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Board size updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ */
+
+/**
+ * @swagger
+ * /api/games/{id}/records:
+ *   get:
+ *     summary: Get game records and statistics
+ *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Game records
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 count:
+ *                   type: integer
+ *                 data:
+ *                   type: array
+ *   post:
+ *     summary: Post game record
+ *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - score
+ *               - play_time
+ *             properties:
+ *               score:
+ *                 type: number
+ *               play_time:
+ *                 type: integer
+ *     responses:
+ *       201:
+ *         description: Record saved successfully
+ */
 router.get("/", getGames);
 
 // POST /api/games/save - Lưu game (yêu cầu authentication)
