@@ -22,11 +22,13 @@ export const UserService = {
     };
   },
 
-  async searchUsers(query, limit = 20) {
+  async searchUsers(query, page = 1, limit = 10) {
     if (!query || query.trim().length === 0) {
-      throw new Error("Search query is required");
+      return [];
     }
-    return await UserModel.searchUsers(query, limit);
+    
+    const offset = (page - 1) * limit;
+    return await UserModel.searchUsers(query, limit, offset);
   },
 
   async getUserProfile(userId) {
@@ -35,16 +37,17 @@ export const UserService = {
       throw new Error("User not found");
     }
 
+    if (!user.is_active) {
+      throw new Error("Account is disabled");
+    }
+
     return {
       userId: user.id,
-      username: user.username,
+      username: user.username || null,
+      fullName: user.full_name || null,
       email: user.email,
-      fullName: user.full_name,
-      role: user.role,
-      avatarUrl: user.avatar_url,
-      bio: user.bio,
-      isActive: user.is_active,
-      lastLogin: user.last_login,
+      bio: user.bio || null,
+      avatarUrl: user.avatar_url ? process.env.SERVER_URL + user.avatar_url : null,
     };
   },
 

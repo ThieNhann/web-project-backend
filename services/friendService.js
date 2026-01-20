@@ -75,7 +75,15 @@ export const FriendService = {
       throw new Error("User not found");
     }
 
-    return await FriendModel.getPendingRequests(userId);
+    const requests = await FriendModel.getPendingRequests(userId);
+    
+    return requests.map((request) => ({
+      requestUserId: request.user_id,
+      requestUsername: request.username,
+      requestUserAvatarUrl: process.env.SERVER_URL + request.avatar_url,
+      status: request.status,
+      createdAt: request.created_at,
+    }));
   },
 
   async getSentRequests(userId) {

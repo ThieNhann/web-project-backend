@@ -95,15 +95,17 @@ export const AuthService = {
       throw new Error("User not found");
     }
 
+    if (!user.is_active) {
+      throw new Error("Account is disabled");
+    }
+
     return {
       userId: user.id,
-      username: user.username,
+      username: user.username || null,
+      fullName: user.full_name || null,
       email: user.email,
-      fullName: user.full_name,
-      role: user.role,
-      avatarUrl: user.avatar_url,
-      bio: user.bio,
-      isActive: user.is_active,
+      bio: user.bio || null,
+      avatarUrl: user.avatar_url ? process.env.SERVER_URL + user.avatar_url : null,
     };
   },
 

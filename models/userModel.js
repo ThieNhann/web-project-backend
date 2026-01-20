@@ -33,13 +33,13 @@ export const UserModel = {
       .orderBy("created_at", "desc");
   },
 
-  async searchUsers(query, limit = 20) {
+  async searchUsers(query, limit = 10, offset = 0) {
     return await db("users")
       .where("username", "ilike", `%${query}%`)
-      .orWhere("email", "ilike", `%${query}%`)
-      .orWhere("full_name", "ilike", `%${query}%`)
-      .select("id", "username", "full_name", "email", "avatar_url", "role")
-      .limit(limit);
+      .where("is_active", true)
+      .select("id", "username", "full_name", "bio", "avatar_url")
+      .limit(limit)
+      .offset(offset);
   },
 
   // ===== UPDATE =====

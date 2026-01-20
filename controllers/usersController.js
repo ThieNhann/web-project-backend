@@ -2,6 +2,7 @@
  * Users Controller - Handle HTTP requests for user operations
  */
 
+import db from "../config/db.js";
 import UserService from "../services/userService.js";
 import FriendService from "../services/friendService.js";
 
@@ -48,14 +49,39 @@ const getUsersAchievements = async (req, res) => {
     const limit = 10;
     const offset = (page - 1) * limit;
 
-    // TODO: Implement achievement fetching when achievement table is available
+    // Get paginated achievements
+    const achievements = await db("user_achievements")
+      .join("achievements", "user_achievements.achievement_id", "=", "achievements.id")
+      .where("user_achievements.user_id", userId)
+      .select(
+        "achievements.name as title",
+        "achievements.icon_url as iconUrl",
+        "achievements.description",
+        "user_achievements.unlocked_at as dateAchieved",
+      )
+      .orderBy("user_achievements.unlocked_at", "desc")
+      .limit(limit)
+      .offset(offset);
+
+    // Get total count of user achievements
+    const totalCount = await db("user_achievements")
+      .join("achievements", "user_achievements.achievement_id", "=", "achievements.id")
+      .where("user_achievements.user_id", userId)
+      .count("* as count")
+      .first();
+
+    const totalAchievements = totalCount?.count || 0;
+
+    // Check if there are more achievements
+    const hasMore = offset + limit < totalAchievements;
+
     return res.json({
-      achievements: [],
-      hasMore: false,
+      achievements,
+      hasMore,
     });
   } catch (error) {
     console.error("Error fetching user achievements:", error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: "Failed to fetch achievements" });
   }
 };
 
@@ -152,32 +178,40 @@ const createOrGetDirectMessage = async (req, res) => {
     const requesterId = req.user.userId;
 
     if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing userId",
-      });
+      return res.status(400).json({ message: "Missing userId" });
     }
 
     if (requesterId === userId) {
-      return res.status(400).json({
-        success: false,
-        message: "Cannot create direct message with yourself",
+      return res.status(400).json({ message: "Cannot create direct message with yourself" });
+    }
+
+    const targetUser = await db("users").where({ id: userId }).first();
+    if (!targetUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    if (!targetUser.is_active) {
+      return res.status(403).json({ message: "Target user's account is disabled" });
+    }
+
+    let existingConversation = await db("conversations")
+      .join("conversation_members", "conversations.id", "conversation_members.conversation_id")
+      .whereIn("conversation_members.user_id", [requesterId, userId])
+      .groupBy("conversations.id")
+      .havingRaw("COUNT(DISTINCT conversation_members.user_id) = 2")
+      .select("conversations.id")
+      .first();
+
+    if (existingConversation) {
+      return res.status(200).json({
+        hasConversation: true,
+        conversationId: existingConversation.id,
       });
     }
 
-    // TODO: Implement conversation creation/retrieval
-    // This requires a conversations table setup
-
-    return res.status(200).json({
-      success: true,
-      hasConversation: false,
-    });
+    return res.status(200).json({ hasConversation: false });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({
-      success: false,
-      message: err.message,
-    });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 

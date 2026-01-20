@@ -77,12 +77,13 @@ export const FriendModel = {
       .where({ friend_id: userId, status: "pending" })
       .join("users", "friends.user_id", "users.id")
       .select(
-        "users.id",
+        "friends.user_id",
         "users.username",
         "users.avatar_url",
-        "friends.requested_at"
+        "friends.status",
+        "friends.created_at"
       )
-      .orderBy("friends.requested_at", "desc");
+      .orderBy("friends.created_at", "desc");
   },
 
   async getSentRequests(userId) {
