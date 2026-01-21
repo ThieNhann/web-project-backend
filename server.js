@@ -26,7 +26,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json()); // Để đọc body request jsonn
-// app.use(verifyApiKey);
+app.use(verifyApiKey);
 
 // Swagger API Documentation
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
