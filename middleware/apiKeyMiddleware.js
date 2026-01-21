@@ -16,14 +16,14 @@ const verifyApiKey = (req, res, next) => {
   if (!validApiKey) {
     return res.status(500).json({
       success: false,
-      message: "Server configuration error: API_KEY not set"
+      message: "Server configuration error: API_KEY not set",
     });
   }
 
   if (!apiKey) {
     return res.status(401).json({
       success: false,
-      message: "API Key is required. Add X-API-Key header."
+      message: "API Key is required. Add X-API-Key header.",
     });
   }
 
@@ -32,7 +32,7 @@ const verifyApiKey = (req, res, next) => {
   if (!validApiKey.split(",").includes(apiKey)) {
     return res.status(403).json({
       success: false,
-      message: "Invalid API Key"
+      message: "Invalid API Key",
     });
   }
 
@@ -50,7 +50,7 @@ const verifyApiKeyQuery = (req, res, next) => {
   if (!apiKey || apiKey !== validApiKey) {
     return res.status(401).json({
       success: false,
-      message: "Invalid or missing API Key"
+      message: "Invalid or missing API Key",
     });
   }
 
@@ -67,14 +67,14 @@ const verifyMultipleApiKeys = (validKeys) => {
     if (!apiKey) {
       return res.status(401).json({
         success: false,
-        message: "API Key is required"
+        message: "API Key is required",
       });
     }
 
     if (!validKeys.includes(apiKey)) {
       return res.status(403).json({
         success: false,
-        message: "Invalid API Key"
+        message: "Invalid API Key",
       });
     }
 

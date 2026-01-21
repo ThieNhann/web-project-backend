@@ -18,7 +18,7 @@ export async function searchUser(req, res) {
         username: user.username,
         fullName: user.full_name,
         bio: user.bio,
-        avatarUrl: process.env.SERVER_URL + user.avatar_url,
+        avatarUrl: user.avatar_url ? process.env.SERVER_URL + user.avatar_url : null,
       })),
     });
   } catch (error) {
