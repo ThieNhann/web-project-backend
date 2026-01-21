@@ -17,12 +17,16 @@ import userStatsRoutes from "./routes/userStatsRoutes.js";
 import { verifyApiKey } from "./middleware/apiKeyMiddleware.js";
 import { specs } from "./config/swagger.js";
 
+import https from "https";
+import fs from "fs";
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
 app.use(express.json()); // Để đọc body request jsonn
+app.use(verifyApiKey);
 
 // Swagger API Documentation
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
@@ -46,6 +50,16 @@ app.get("/", (req, res) => {
   res.send("chạy ok");
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+const options = {
+  key: fs.readFileSync("./certs/key.pem"),
+  cert: fs.readFileSync("./certs/cert.pem"),
+};
+
+
+https.createServer(options, app).listen(PORT, "0.0.0.0", () => {
+  console.log(`HTTPS Server running on port ${PORT}`);
 });
+
+// app.listen(PORT, () => {
+//   console.log(`Server running on port ${PORT}`);
+// });
