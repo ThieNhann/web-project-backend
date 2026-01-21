@@ -32,4 +32,19 @@ const verifyToken = (req, res, next) => {
   }
 };
 
+export function apiKeyAuth(req, res, next) {
+  const VALID_KEYS = process.env.API_KEY.split(",");
+  const apiKey = req.header("x-api-key");
+
+  if (!apiKey) {
+    return res.status(401).json({ message: "API key missing" });
+  }
+
+  if (!VALID_KEYS.includes(apiKey)) {
+    return res.status(403).json({ message: "Invalid API key" });
+  }
+
+  next();
+}
+
 export { verifyToken };

@@ -27,7 +27,9 @@ const verifyApiKey = (req, res, next) => {
     });
   }
 
-  if (apiKey !== validApiKey) {
+  console.log("[DEBUG] Received API Key:", apiKey);
+  console.log("[DEBUG] Valid API Key:", validApiKey);
+  if (!validApiKey.split(",").includes(apiKey)) {
     return res.status(403).json({
       success: false,
       message: "Invalid API Key"
