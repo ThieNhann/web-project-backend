@@ -76,11 +76,11 @@ export const FriendService = {
     }
 
     const requests = await FriendModel.getPendingRequests(userId);
-    
+
     return requests.map((request) => ({
       requestUserId: request.user_id,
       requestUsername: request.username,
-      requestUserAvatarUrl: process.env.SERVER_URL + request.avatar_url,
+      requestUserAvatarUrl: request.avatar_url ? process.env.SERVER_URL + request.avatar_url : null,
       status: request.status,
       createdAt: request.created_at,
     }));

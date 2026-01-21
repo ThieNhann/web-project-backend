@@ -52,7 +52,7 @@ const getUsersRankings = async (req, res) => {
         userId: r.id,
         username: r.username,
         fullName: r.full_name,
-        avatarUrl: process.env.SERVER_URL + r.avatar_url,
+        avatarUrl: r.avatar_url ? process.env.SERVER_URL + r.avatar_url : null,
         score: r.total_score,
       })),
       userOwnRanking: {

@@ -78,7 +78,7 @@ export const getUserInfo = async (req, res) => {
 //     if (!user || !user.is_active) return res.status(403).json({ message: "Account is disabled" });
 
 //     const userId = user.id;
-//     const accessToken = signToken({ userId, username: user.username }, "1m");
+//     const accessToken = signToken({ userId, username: user.username }, "15m");
 //     const refreshToken = signToken({ userId, type: "refresh" }, "7d");
 
 //     return res.status(200).json({
@@ -181,7 +181,7 @@ export const requestNewAccessToken = async (req, res) => {
     const userInformation = await AuthService.getUserInfo(userId);
     // console.log("User information retrieved for new access token:", userInformation);
 
-    const newAccessToken = signToken({ userId, username: userInformation.username }, "1m");
+    const newAccessToken = signToken({ userId, username: userInformation.username }, "15m");
 
     // console.log("Generated new access token for userId:", newAccessToken);
     // console.log("Is user admin?:", isAdmin);

@@ -32,11 +32,13 @@ export async function getMessageList(req, res) {
       }),
     );
 
+    console.log("[DEBUG] getMessageList:", conversationWithLastMessages);
+
     return res.status(200).json({
       chatList: conversationWithLastMessages.map((conv) => ({
         conversationId: conv.conversationId,
         username: conv.username,
-        avatarUrl: process.env.SERVER_URL + conv.avatar_url,
+        avatarUrl: conv.avatar_url ? process.env.SERVER_URL + conv.avatar_url : null,
         lastMessage: {
           content: conv.lastMessageContent,
           role: conv.lastMessageUserId === requesterId ? "sender" : "receiver",

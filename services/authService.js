@@ -73,7 +73,7 @@ export const AuthService = {
     await UserModel.updateLastLogin(user.id);
 
     // Generate tokens
-    const accessToken = signToken({ userId: user.id }, "1m");
+    const accessToken = signToken({ userId: user.id }, "15m");
     const refreshToken = signToken({ userId: user.id, type: "refresh" }, "7d");
 
     return {

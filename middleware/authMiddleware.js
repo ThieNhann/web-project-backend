@@ -15,7 +15,7 @@ const verifyToken = (req, res, next) => {
   // lấy token từ header "Authorization: Bearer <token>"
   const authHeader = req.header("Authorization");
   const token = authHeader && authHeader.split(" ")[1];
-  // console.log("[DEBUG] verifyToken called, token:", token);
+  // console.log("[DEBUG] verifyToken called, token:", token.slice(-5));
 
   if (!token) {
     return res.status(401).json({ success: false, message: "Token not found." });
@@ -28,6 +28,7 @@ const verifyToken = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (error) {
+    console.log("[DEBUG] verifyToken error:", error.message);
     return res.status(401).json({ success: false, message: "Token not valid or expired." });
   }
 };
