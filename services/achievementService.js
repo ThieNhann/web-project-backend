@@ -20,7 +20,7 @@ class AchievementService {
         "achievements.icon_url",
         "achievements.condition_type",
         "achievements.condition_value",
-        "user_achievements.unlocked_at"
+        "user_achievements.unlocked_at",
       )
       .orderBy("user_achievements.unlocked_at", "desc");
 
@@ -31,9 +31,7 @@ class AchievementService {
    * Get all available achievements
    */
   static async getAllAchievements() {
-    const achievements = await db("achievements")
-      .select("*")
-      .orderBy("id", "asc");
+    const achievements = await db("achievements").select("*").orderBy("id", "asc");
 
     return achievements;
   }
@@ -53,20 +51,20 @@ class AchievementService {
 
     try {
       const value = conditionValue;
-      
+
       switch (conditionType) {
         case "login_count":
           return stats.login_count >= value.threshold;
-        
+
         case "win_count":
           return stats.win_count >= value.threshold;
-        
+
         case "match_count":
           return stats.match_count >= value.threshold;
-        
+
         case "max_score":
           return stats.max_score >= value.threshold;
-        
+
         default:
           return false;
       }
@@ -83,10 +81,8 @@ class AchievementService {
     const stats = await this.getUserStats(userId);
     const allAchievements = await this.getAllAchievements();
     const userAchievements = await this.getUserAchievements(userId);
-    
-    const unlockedAchievementIds = new Set(
-      userAchievements.map((a) => a.id)
-    );
+
+    const unlockedAchievementIds = new Set(userAchievements.map((a) => a.id));
 
     const newlyUnlocked = [];
 
@@ -100,7 +96,7 @@ class AchievementService {
       const conditionMet = this.checkCondition(
         stats,
         achievement.condition_type,
-        achievement.condition_value
+        achievement.condition_value,
       );
 
       if (conditionMet) {

@@ -37,6 +37,7 @@ export const FriendModel = {
   async removeFriend(userId, friendId) {
     await db("friends")
       .where({ user_id: userId, friend_id: friendId })
+      .orWhere({ user_id: friendId, friend_id: userId })
       .del();
   },
 
@@ -45,11 +46,7 @@ export const FriendModel = {
     return await db("friends")
       .where({ user_id: userId, status: "accepted" })
       .join("users", "friends.friend_id", "users.id")
-      .select(
-        "users.id",
-        "users.username",
-        "users.avatar_url",
-      );
+      .select("users.id", "users.username", "users.avatar_url");
   },
 
   async getPendingRequests(userId) {
@@ -61,7 +58,7 @@ export const FriendModel = {
         "users.username",
         "users.avatar_url",
         "friends.status",
-        "friends.created_at"
+        "friends.created_at",
       )
       .orderBy("friends.created_at", "desc");
   },
@@ -70,11 +67,7 @@ export const FriendModel = {
     return await db("friends")
       .where({ user_id: userId, status: "pending" })
       .join("users", "friends.friend_id", "users.id")
-      .select(
-        "users.id",
-        "users.username",
-        "users.avatar_url",
-      );
+      .select("users.id", "users.username", "users.avatar_url");
   },
 
   async isFriend(userId, friendId) {
@@ -84,14 +77,17 @@ export const FriendModel = {
         friend_id: friendId,
         status: "accepted",
       })
+      .orWhere({
+        user_id: friendId,
+        friend_id: userId,
+        status: "accepted",
+      })
       .first();
     return !!result;
   },
 
   async getFriendStatus(userId, friendId) {
-    return await db("friends")
-      .where({ user_id: userId, friend_id: friendId })
-      .first();
+    return await db("friends").where({ user_id: userId, friend_id: friendId }).first();
   },
 };
 

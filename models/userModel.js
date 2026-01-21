@@ -6,6 +6,21 @@
 import db from "../config/db.js";
 
 export const UserModel = {
+  async getFriendships(userId, limit = 20, offset = 0) {
+    return db("friends")
+      .join("users", function () {
+        this.on("users.id", "friends.friend_id")
+          .andOn("friends.user_id", db.raw("?", [userId]))
+          .orOn("users.id", "friends.user_id")
+          .andOn("friends.friend_id", db.raw("?", [userId]));
+      })
+      .where("friends.status", "accepted")
+      .select("users.id", "users.username", "users.full_name", "users.avatar_url", "users.bio")
+      .orderBy("users.username", "asc")
+      .limit(limit)
+      .offset(offset);
+  },
+
   // ===== CREATE =====
   async create(userData) {
     await db("users").insert(userData);

@@ -188,6 +188,7 @@ router.get("/:userId/achievements", validateRequest, usersController.getUsersAch
 router.get("/:userId/rankings", validateRequest, usersController.getUsersRankings);
 router.get("/:userId/friend-status", verifyToken, usersController.getFriendStatus);
 router.get("/:userId", usersController.getUserProfile);
+router.get("/:userId/friendships", verifyToken, usersController.getUserFriendships);
 router.post("/:userId/add-friend", validateRequest, verifyToken, usersController.addFriend);
 router.post("/:userId/remove-friend", validateRequest, verifyToken, usersController.removeFriend);
 router.post(

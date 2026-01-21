@@ -6,6 +6,11 @@ import UserModel from "../models/userModel.js";
 import GameModel from "../models/gameModel.js";
 
 export const UserService = {
+  async getUserFriendships(userId, limit = 20, offset = 0) {
+    const friendships = await UserModel.getFriendships(userId, limit, offset);
+    return friendships;
+  },
+
   async getAllUsers(page = 1, limit = 50) {
     const offset = (page - 1) * limit;
     const users = await UserModel.findAll(limit, offset);

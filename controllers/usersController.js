@@ -26,6 +26,32 @@ const getUserProfile = async (req, res) => {
   }
 };
 
+const getUserFriendships = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const page = parseInt(req.query.page) || 1;
+    const limit = 20;
+    const offset = (page - 1) * limit;
+    const friendships = await UserService.getUserFriendships(userId, limit, offset);
+
+    return res.status(200).json({
+      data: friendships.map((friend) => ({
+        userId: friend.id,
+        username: friend.username || null,
+        fullName: friend.full_name || null,
+        avatarUrl: friend.avatar_url ? process.env.SERVER_URL + friend.avatar_url : null,
+      })),
+      hasMore: friendships.length === limit,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching user friendships",
+    });
+  }
+};
+
 // ===== USER RANKINGS =====
 const getUsersRankings = async (req, res) => {
   try {
@@ -250,6 +276,7 @@ export default {
   getUsersRankings,
   getFriendStatus,
   getUserProfile,
+  getUserFriendships,
   addFriend,
   removeFriend,
   createOrGetDirectMessage,
